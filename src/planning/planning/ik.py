@@ -7,6 +7,17 @@ from sensor_msgs.msg import JointState
 from builtin_interfaces.msg import Duration
 import sys
 
+from typing import Callable
+
+import numpy as np
+import jax.numpy as jnp
+import pyroki as pk
+
+from oneshot_gen_traj import solve_static_trajopt
+from oneshot_gen_traj import compute_ee_spatial_jacobian
+from oneshot_gen_traj import solve_single_ik_with_collision
+
+from world import World
 
 # Example usage:
 # -------------------------------------------------
@@ -41,8 +52,19 @@ class IKPlanner(Node):
             while not srv.wait_for_service(timeout_sec=1.0):
                 self.get_logger().info(f'Waiting for /{name} service...')
 
+        # ----- PyRoki setup -----
+        self.urdf = load_robot_description("ur5_description") # TODO: Change to ur7e
+        self.robot_coll = pk.collision.RobotCollision.from_urdf(self.urdf)
+
+        # For UR5 it's important to initialize the robot in a safe configuration;
+        default_cfg = np.zeros(6) # TODO: UR7e default_config
+        self.robot = pk.Robot.from_urdf(self.urdf, default_joint_cfg=default_cfg)
+        self.target_link_name = "wrist_3_link"
+
+        self.world = World(self.robot, self.urdf, self.target_link_name) 
+
     # -----------------------------------------------------------
-    # TODO: Compute IK for a given (x, y, z) + quat and current robot joint state
+    # Compute IK for a given (x, y, z) + quat and current robot joint state
     # -----------------------------------------------------------
     def compute_ik(self, current_joint_state, x, y, z,
                    qx=0.0, qy=1.0, qz=0.0, qw=0.0): # Think about why the default quaternion is like this. Why is qy=1?
@@ -57,7 +79,7 @@ class IKPlanner(Node):
         pose.pose.orientation.w = qw
 
         ik_req = GetPositionIK.Request()
-        # TODO: Lookup the format for ik request and build ik_req by filling in necessary parameters. What is your end-effector link name?
+        # Lookup the format for ik request and build ik_req by filling in necessary parameters. 
         ik_req.ik_request.pose_stamped = pose
         ik_req.ik_request.robot_state.joint_state = current_joint_state
         ik_req.ik_request.ik_link_name = 'wrist_3_link'
@@ -118,7 +140,32 @@ class IKPlanner(Node):
         self.get_logger().info('Motion plan computed successfully.')
         return result.motion_plan_response.trajectory
 
+    def _solve_to_target(self, start_cfg, target_pos, timesteps, dt):
+        """ Solve the trajectory problem """
+        return solve_static_trajopt(
+            self.robot,
+            self.robot_coll,
+            self.world.gen_world_coll(),
+            self.target_link_name,
+            start_cfg,
+            target_pos,
+            timesteps,
+            dt,
+            0.85 * 0.8, # TODO: MAX REACH! Make parameter
+            7 # TODO: MAX VEL! Make parameter
+        )
 
+    def _trajectory_points_to_msg(self, traj, dt):
+        """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
+        pass
+
+    def plan_to_target(self, start_cfg, target_pos, timesteps, dt):
+        """ Return message of planned trajectory and visualize before execution"""
+        traj, t_release, t_target = self._solve_to_target(start_cfg, target_pos, timesteps, dt)
+        self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
+        return self._trajectory_points_to_msg(np.array(traj), dt)
+    
+    
 def main(args=None):
     rclpy.init(args=args)
     node = IKPlanner()
