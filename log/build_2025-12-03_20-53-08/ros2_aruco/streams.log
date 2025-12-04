@@ -1,0 +1,46 @@
+[2.079s] Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/ros2_aruco build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/install.log --single-version-externally-managed install_data
+[2.346s] running egg_info
+[2.346s] creating ../../../build/ros2_aruco/ros2_aruco.egg-info
+[2.347s] writing ../../../build/ros2_aruco/ros2_aruco.egg-info/PKG-INFO
+[2.352s] writing dependency_links to ../../../build/ros2_aruco/ros2_aruco.egg-info/dependency_links.txt
+[2.355s] writing entry points to ../../../build/ros2_aruco/ros2_aruco.egg-info/entry_points.txt
+[2.357s] writing requirements to ../../../build/ros2_aruco/ros2_aruco.egg-info/requires.txt
+[2.358s] writing top-level names to ../../../build/ros2_aruco/ros2_aruco.egg-info/top_level.txt
+[2.361s] writing manifest file '../../../build/ros2_aruco/ros2_aruco.egg-info/SOURCES.txt'
+[2.368s] reading manifest file '../../../build/ros2_aruco/ros2_aruco.egg-info/SOURCES.txt'
+[2.371s] writing manifest file '../../../build/ros2_aruco/ros2_aruco.egg-info/SOURCES.txt'
+[2.373s] running build
+[2.373s] running build_py
+[2.374s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build
+[2.375s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib
+[2.375s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco
+[2.377s] copying ros2_aruco/__init__.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco
+[2.381s] copying ros2_aruco/aruco_generate_marker.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco
+[2.385s] copying ros2_aruco/aruco_node.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco
+[2.390s] running install
+[2.391s] running install_lib
+[2.394s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco
+[2.395s] copying /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco/__init__.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco
+[2.400s] copying /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco/aruco_generate_marker.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco
+[2.405s] copying /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build/lib/ros2_aruco/aruco_node.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco
+[2.413s] byte-compiling /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco/__init__.py to __init__.cpython-310.pyc
+[2.419s] byte-compiling /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco/aruco_generate_marker.py to aruco_generate_marker.cpython-310.pyc
+[2.425s] byte-compiling /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco/aruco_node.py to aruco_node.cpython-310.pyc
+[2.435s] running install_data
+[2.436s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ament_index
+[2.436s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ament_index/resource_index
+[2.437s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ament_index/resource_index/packages
+[2.439s] copying resource/ros2_aruco -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ament_index/resource_index/packages
+[2.442s] copying package.xml -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco
+[2.447s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/launch
+[2.448s] copying launch/aruco_recognition.launch.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/launch
+[2.453s] creating /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/config
+[2.454s] copying config/aruco_parameters.yaml -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/config
+[2.459s] copying config/aruco_parameters_old.yaml -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/config
+[2.464s] running install_egg_info
+[2.469s] Copying ../../../build/ros2_aruco/ros2_aruco.egg-info to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages/ros2_aruco-0.1.0-py3.10.egg-info
+[2.504s] running install_scripts
+[2.526s] Installing aruco_generate_marker script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/ros2_aruco
+[2.529s] Installing aruco_node script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/ros2_aruco
+[2.532s] writing list of installed files to '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/install.log'
+[2.581s] Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco' returned '0': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/ros2_aruco build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/install.log --single-version-externally-managed install_data

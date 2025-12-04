@@ -1,0 +1,309 @@
+[0.304s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.304s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=32, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x7a4565dbf880>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7a4565efcf40>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7a4565efcf40>>, mixin_verb=('build',))
+[0.473s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.473s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.473s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.473s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.473s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.473s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.473s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project'
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.474s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.486s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.486s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.486s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.486s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.486s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.487s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.487s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.487s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.487s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.487s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.487s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.489s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extensions ['ignore', 'ignore_ament_install']
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extension 'ignore'
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extension 'ignore_ament_install'
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extensions ['colcon_pkg']
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extension 'colcon_pkg'
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extensions ['colcon_meta']
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extension 'colcon_meta'
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extensions ['ros']
+[0.490s] Level 1:colcon.colcon_core.package_identification:_identify(src/perception) by extension 'ros'
+[0.492s] DEBUG:colcon.colcon_core.package_identification:Package 'src/perception' with type 'ros.ament_python' and name 'perception'
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extensions ['ignore', 'ignore_ament_install']
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extension 'ignore'
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extension 'ignore_ament_install'
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extensions ['colcon_pkg']
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extension 'colcon_pkg'
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extensions ['colcon_meta']
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extension 'colcon_meta'
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extensions ['ros']
+[0.493s] Level 1:colcon.colcon_core.package_identification:_identify(src/planning) by extension 'ros'
+[0.494s] DEBUG:colcon.colcon_core.package_identification:Package 'src/planning' with type 'ros.ament_python' and name 'planning'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extensions ['ignore', 'ignore_ament_install']
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'ignore'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'ignore_ament_install'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extensions ['colcon_pkg']
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'colcon_pkg'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extensions ['colcon_meta']
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'colcon_meta'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extensions ['ros']
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'ros'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extensions ['cmake', 'python']
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'cmake'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'python'
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extensions ['python_setup_py']
+[0.494s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco) by extension 'python_setup_py'
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extensions ['ignore', 'ignore_ament_install']
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extension 'ignore'
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extension 'ignore_ament_install'
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extensions ['colcon_pkg']
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extension 'colcon_pkg'
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extensions ['colcon_meta']
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extension 'colcon_meta'
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extensions ['ros']
+[0.495s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco) by extension 'ros'
+[0.496s] DEBUG:colcon.colcon_core.package_identification:Package 'src/ros2_aruco/ros2_aruco' with type 'ros.ament_python' and name 'ros2_aruco'
+[0.496s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extensions ['ignore', 'ignore_ament_install']
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extension 'ignore'
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extension 'ignore_ament_install'
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extensions ['colcon_pkg']
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extension 'colcon_pkg'
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extensions ['colcon_meta']
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extension 'colcon_meta'
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extensions ['ros']
+[0.497s] Level 1:colcon.colcon_core.package_identification:_identify(src/ros2_aruco/ros2_aruco_interfaces) by extension 'ros'
+[0.498s] DEBUG:colcon.colcon_core.package_identification:Package 'src/ros2_aruco/ros2_aruco_interfaces' with type 'ros.ament_cmake' and name 'ros2_aruco_interfaces'
+[0.498s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.498s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.498s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.498s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.498s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'cmake_args' from command line to 'None'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'cmake_target' from command line to 'None'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'cmake_clean_cache' from command line to 'False'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'cmake_clean_first' from command line to 'False'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'cmake_force_configure' from command line to 'False'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'ament_cmake_args' from command line to 'None'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'catkin_cmake_args' from command line to 'None'
+[0.517s] Level 5:colcon.colcon_core.verb:set package 'perception' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.517s] DEBUG:colcon.colcon_core.verb:Building package 'perception' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception', 'merge_install': False, 'path': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception', 'symlink_install': False, 'test_result_base': None}
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'cmake_target' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'cmake_clean_cache' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'cmake_clean_first' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'cmake_force_configure' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'ament_cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'catkin_cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'planning' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.518s] DEBUG:colcon.colcon_core.verb:Building package 'planning' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning', 'merge_install': False, 'path': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning', 'symlink_install': False, 'test_result_base': None}
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'cmake_target' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'cmake_clean_cache' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'cmake_clean_first' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'cmake_force_configure' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'ament_cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'catkin_cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.518s] DEBUG:colcon.colcon_core.verb:Building package 'ros2_aruco' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco', 'merge_install': False, 'path': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco', 'symlink_install': False, 'test_result_base': None}
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'cmake_target' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'cmake_clean_cache' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'cmake_clean_first' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'cmake_force_configure' from command line to 'False'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'ament_cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'catkin_cmake_args' from command line to 'None'
+[0.518s] Level 5:colcon.colcon_core.verb:set package 'ros2_aruco_interfaces' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.518s] DEBUG:colcon.colcon_core.verb:Building package 'ros2_aruco_interfaces' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces', 'merge_install': False, 'path': '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco_interfaces', 'symlink_install': False, 'test_result_base': None}
+[0.518s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.519s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.519s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception' with build type 'ament_python'
+[0.519s] Level 1:colcon.colcon_core.shell:create_environment_hook('perception', 'ament_prefix_path')
+[0.523s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.523s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/hook/ament_prefix_path.ps1'
+[0.526s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/hook/ament_prefix_path.dsv'
+[0.530s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/hook/ament_prefix_path.sh'
+[0.533s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.533s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.572s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning' with build type 'ament_python'
+[0.572s] Level 1:colcon.colcon_core.shell:create_environment_hook('planning', 'ament_prefix_path')
+[0.572s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/hook/ament_prefix_path.ps1'
+[0.576s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/hook/ament_prefix_path.dsv'
+[0.580s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/hook/ament_prefix_path.sh'
+[0.584s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.584s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.604s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco' with build type 'ament_python'
+[0.604s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_aruco', 'ament_prefix_path')
+[0.604s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/hook/ament_prefix_path.ps1'
+[0.608s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/hook/ament_prefix_path.dsv'
+[0.613s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/hook/ament_prefix_path.sh'
+[0.617s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.617s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.640s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco_interfaces' with build type 'ament_cmake'
+[0.640s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco_interfaces'
+[0.641s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.641s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.083s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception'
+[1.083s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.083s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.515s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning'
+[1.515s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.516s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.949s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco'
+[1.949s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.949s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.987s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception:/home/ff/ee106a/robot_workspaces/ur/install/ur7e_utils:/opt/ros/humble /usr/bin/cmake --build /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces -- -j32 -l32
+[3.664s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception:/home/ff/ee106a/robot_workspaces/ur/install/ur7e_utils:/opt/ros/humble /usr/bin/cmake --build /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces -- -j32 -l32
+[3.699s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception:/home/ff/ee106a/robot_workspaces/ur/install/ur7e_utils:/opt/ros/humble /usr/bin/cmake --install /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces
+[4.145s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ros2_aruco_interfaces)
+[4.146s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception:/home/ff/ee106a/robot_workspaces/ur/install/ur7e_utils:/opt/ros/humble /usr/bin/cmake --install /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces
+[4.157s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces' for CMake module files
+[4.159s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces' for CMake config files
+[4.164s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_aruco_interfaces', 'cmake_prefix_path')
+[4.164s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/cmake_prefix_path.ps1'
+[4.169s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/cmake_prefix_path.dsv'
+[4.175s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/cmake_prefix_path.sh'
+[4.184s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/lib'
+[4.185s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_aruco_interfaces', 'ld_library_path_lib')
+[4.185s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/ld_library_path_lib.ps1'
+[4.189s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/ld_library_path_lib.dsv'
+[4.194s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/ld_library_path_lib.sh'
+[4.200s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/bin'
+[4.200s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/lib/pkgconfig/ros2_aruco_interfaces.pc'
+[4.201s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/lib/python3.10/site-packages'
+[4.201s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/bin'
+[4.202s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.ps1'
+[4.206s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.dsv'
+[4.211s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.sh'
+[4.218s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.bash'
+[4.222s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.zsh'
+[4.226s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/colcon-core/packages/ros2_aruco_interfaces)
+[4.232s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ros2_aruco_interfaces)
+[4.233s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces' for CMake module files
+[4.234s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces' for CMake config files
+[4.238s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_aruco_interfaces', 'cmake_prefix_path')
+[4.239s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/cmake_prefix_path.ps1'
+[4.242s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/cmake_prefix_path.dsv'
+[4.246s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/cmake_prefix_path.sh'
+[4.251s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/lib'
+[4.251s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_aruco_interfaces', 'ld_library_path_lib')
+[4.252s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/ld_library_path_lib.ps1'
+[4.255s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/ld_library_path_lib.dsv'
+[4.259s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/hook/ld_library_path_lib.sh'
+[4.264s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/bin'
+[4.264s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/lib/pkgconfig/ros2_aruco_interfaces.pc'
+[4.264s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/lib/python3.10/site-packages'
+[4.265s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/bin'
+[4.265s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.ps1'
+[4.268s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.dsv'
+[4.272s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.sh'
+[4.275s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.bash'
+[4.278s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/ros2_aruco_interfaces/package.zsh'
+[4.280s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco_interfaces/share/colcon-core/packages/ros2_aruco_interfaces)
+[4.299s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/perception build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/install.log --single-version-externally-managed install_data
+[4.306s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/planning build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/install.log --single-version-externally-managed install_data
+[4.311s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/ros2_aruco build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/install.log --single-version-externally-managed install_data
+[6.402s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception' for CMake module files
+[6.403s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception' returned '0': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/perception build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/install.log --single-version-externally-managed install_data
+[6.405s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception' for CMake config files
+[6.411s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib'
+[6.411s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/bin'
+[6.411s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/pkgconfig/perception.pc'
+[6.412s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages'
+[6.412s] Level 1:colcon.colcon_core.shell:create_environment_hook('perception', 'pythonpath')
+[6.412s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/hook/pythonpath.ps1'
+[6.415s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/hook/pythonpath.dsv'
+[6.418s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/hook/pythonpath.sh'
+[6.422s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/bin'
+[6.422s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(perception)
+[6.423s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/package.ps1'
+[6.426s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/package.dsv'
+[6.429s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/package.sh'
+[6.432s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/package.bash'
+[6.436s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception/package.zsh'
+[6.438s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/colcon-core/packages/perception)
+[6.442s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco' for CMake module files
+[6.446s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco' for CMake config files
+[6.449s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco' returned '0': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/ros2_aruco build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco/install.log --single-version-externally-managed install_data
+[6.455s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib'
+[6.455s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/bin'
+[6.455s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/pkgconfig/ros2_aruco.pc'
+[6.456s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/lib/python3.10/site-packages'
+[6.456s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_aruco', 'pythonpath')
+[6.456s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/hook/pythonpath.ps1'
+[6.459s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/hook/pythonpath.dsv'
+[6.464s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/hook/pythonpath.sh'
+[6.468s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/bin'
+[6.468s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ros2_aruco)
+[6.468s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/package.ps1'
+[6.471s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/package.dsv'
+[6.474s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/package.sh'
+[6.478s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/package.bash'
+[6.481s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/ros2_aruco/package.zsh'
+[6.483s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/ros2_aruco/share/colcon-core/packages/ros2_aruco)
+[6.485s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning' for CMake module files
+[6.488s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning' for CMake config files
+[6.492s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning' returned '0': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/planning build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/install.log --single-version-externally-managed install_data
+[6.497s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib'
+[6.498s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/bin'
+[6.498s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/pkgconfig/planning.pc'
+[6.498s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages'
+[6.499s] Level 1:colcon.colcon_core.shell:create_environment_hook('planning', 'pythonpath')
+[6.499s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/hook/pythonpath.ps1'
+[6.503s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/hook/pythonpath.dsv'
+[6.506s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/hook/pythonpath.sh'
+[6.510s] Level 1:colcon.colcon_core.environment:checking '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/bin'
+[6.510s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(planning)
+[6.511s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/package.ps1'
+[6.514s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/package.dsv'
+[6.517s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/package.sh'
+[6.520s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/package.bash'
+[6.523s] INFO:colcon.colcon_core.shell:Creating package script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/package.zsh'
+[6.526s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/colcon-core/packages/planning)
+[6.527s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[6.527s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[6.527s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[6.527s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[6.550s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[6.550s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[6.550s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[6.550s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[6.662s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[6.662s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/local_setup.ps1'
+[6.665s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/_local_setup_util_ps1.py'
+[6.669s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/setup.ps1'
+[6.676s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/local_setup.sh'
+[6.678s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/_local_setup_util_sh.py'
+[6.681s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/setup.sh'
+[6.690s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/local_setup.bash'
+[6.694s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/setup.bash'
+[6.702s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/local_setup.zsh'
+[6.705s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/setup.zsh'

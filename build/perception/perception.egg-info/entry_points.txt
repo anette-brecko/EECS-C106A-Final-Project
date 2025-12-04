@@ -1,0 +1,3 @@
+[console_scripts]
+interactive_plane = perception.interactive_plane:main
+process_pointcloud = perception.process_pointcloud:main
