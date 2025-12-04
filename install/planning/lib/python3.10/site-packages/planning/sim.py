@@ -7,21 +7,22 @@ Robot going over a wall, while avoiding world-collisions.
 
 import time
 from typing import Callable
-from world import World
+from .world import World
 import numpy as np
 import pyroki as pk
 from robot_descriptions.loaders.yourdfpy import load_robot_description
-from oneshot_gen_traj import solve_static_trajopt
+from .oneshot_gen_traj import solve_static_trajopt
 import tyro
-
+from .load_urdf import load_xacro_robot
 def main():
     # Initialize robot
-    urdf = "/opt/ros/humble/share/ur_description/urdf"
-    urdf = load_robot_description("ur5_description") # TODO: Change to ur7e
+    #urdf_path = "/opt/ros/humble/share/ur_description/urdf/ur.urdf.xacro"
+    #urdf = load_xacro_robot(urdf_path)
+    urdf = load_robot_description("ur5_description")
     robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
     # For UR5 it's important to initialize the robot in a safe configuration;
-    default_cfg = np.array([3.141, -1.850, -1.425, -1.405, 1.593, -3.141]) # TODO: Check
+    default_cfg = np.array([0, -1.850, -1.425, -1.405, 1.593, -3.141]) # TODO: Check
     robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
     target_link_name = "ee_link"
 
@@ -32,7 +33,7 @@ def main():
 
     # Generate example trajectory
     start_cfg = default_cfg
-    target_pos = np.array([2.0, -0.3, .7])
+    target_pos = np.array([-2.0, -0.3, .7])
     time_horizon = 1.19
     timesteps = 40
     dt = time_horizon / timesteps

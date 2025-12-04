@@ -1,0 +1,42 @@
+[3.086s] Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/planning build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/install.log --single-version-externally-managed install_data
+[3.483s] /home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+[3.483s]   warnings.warn(msg)
+[3.923s] running egg_info
+[3.981s] writing ../../build/planning/planning.egg-info/PKG-INFO
+[3.987s] writing dependency_links to ../../build/planning/planning.egg-info/dependency_links.txt
+[3.990s] writing entry points to ../../build/planning/planning.egg-info/entry_points.txt
+[3.992s] writing requirements to ../../build/planning/planning.egg-info/requires.txt
+[3.994s] writing top-level names to ../../build/planning/planning.egg-info/top_level.txt
+[4.114s] reading manifest file '../../build/planning/planning.egg-info/SOURCES.txt'
+[4.117s] writing manifest file '../../build/planning/planning.egg-info/SOURCES.txt'
+[4.120s] running build
+[4.120s] running build_py
+[4.122s] copying planning/__init__.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.126s] copying planning/ik.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.131s] copying planning/main.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.135s] copying planning/oneshot_gen_traj.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.141s] copying planning/sim.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.145s] copying planning/static_tf_transform.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.150s] copying planning/test_launch.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.154s] copying planning/transform_ball_pose.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.159s] copying planning/world.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.162s] copying planning/load_urdf.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build/lib/planning
+[4.166s] running install
+[4.169s] running install_lib
+[4.248s] running install_data
+[4.251s] copying resource/planning -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/ament_index/resource_index/packages
+[4.255s] copying package.xml -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning
+[4.260s] copying launch/test_bringup.launch.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/launch
+[4.264s] copying launch/catch_bringup.launch.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/launch
+[4.268s] running install_egg_info
+[4.345s] removing '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning-0.0.0-py3.10.egg-info' (and everything under it)
+[4.351s] Copying ../../build/planning/planning.egg-info to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning-0.0.0-py3.10.egg-info
+[4.394s] running install_scripts
+[4.742s] Installing ik script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/planning
+[4.744s] Installing main script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/planning
+[4.746s] Installing sim script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/planning
+[4.749s] Installing test script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/planning
+[4.751s] Installing tf script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/planning
+[4.753s] Installing transform_cube_pose script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/planning
+[4.756s] writing list of installed files to '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/install.log'
+[4.832s] Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/planning' returned '0': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/planning build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/planning/install.log --single-version-externally-managed install_data

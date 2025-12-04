@@ -1,0 +1,9 @@
+{
+    "cacheDirectory": "/tmp/.pyright_cache",
+	"exclude": [
+		"**/build",
+		"**/install",
+		"**/__pycache__",
+		"**/data"
+	    ],
+}

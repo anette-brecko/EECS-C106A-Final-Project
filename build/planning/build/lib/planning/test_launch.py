@@ -29,16 +29,15 @@ class UR7e_TestLaunch(Node):
 
         self.joint_state = None
 
-        self.SPEED = 10.0
-        self.ik_planner = IKPlanner(self.SPEED)
+        self.ik_planner = IKPlanner()
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
-        self.target_pose = np.array([2.0, 0.3, .7])
+        self.target_pose = np.array([-2.0, 0.3, .7])
 
     def joint_state_callback(self, msg: JointState):
         if self.joint_state is not None:
-            self.get_logger().info("Already moved")
+            #self.get_logger().info("Already moved")
             return
 
         self.joint_state = msg
@@ -46,7 +45,8 @@ class UR7e_TestLaunch(Node):
         # 1) Move to Pre-Launch Position after gripping
         self.job_queue.append('toggle_grip')
         
-        self.launch_state = self.ik_planner.compute_ik(self.joint_state, 0, 0, 0, 0, 0, 0, 0) # TODO: Fill!
+        self.launch_state = self.ik_planner.compute_ik(self.joint_state, -.61, 0.406, 0.0)
+        self.job_queue.append(self.launch_state)
         
         # 5) Launch Ball
         throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5)
@@ -131,8 +131,8 @@ class UR7e_TestLaunch(Node):
                        feedback_msg.feedback.actual.time_from_start.nanosec * 1e-9
 
         # If we passed the release time, FIRE!
-        if current_time >= self._current_release_time * self.SPEED:
-            self.get_logger().info(f"RELEASE TRIGGERED at {current_time:.3f}s (Target: {self._current_release_time * self.SPEED:.3f}s)")
+        if current_time >= self._current_release_time:
+            self.get_logger().info(f"RELEASE TRIGGERED at {current_time:.3f}s (Target: {self._current_release_time:.3f}s)")
             
             # Open gripper
             req = Trigger.Request()

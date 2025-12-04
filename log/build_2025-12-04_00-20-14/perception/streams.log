@@ -1,0 +1,29 @@
+[4.102s] Invoking command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/perception build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/install.log --single-version-externally-managed install_data
+[4.572s] /home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+[4.572s]   warnings.warn(msg)
+[5.143s] running egg_info
+[5.221s] writing ../../build/perception/perception.egg-info/PKG-INFO
+[5.225s] writing dependency_links to ../../build/perception/perception.egg-info/dependency_links.txt
+[5.228s] writing entry points to ../../build/perception/perception.egg-info/entry_points.txt
+[5.231s] writing requirements to ../../build/perception/perception.egg-info/requires.txt
+[5.234s] writing top-level names to ../../build/perception/perception.egg-info/top_level.txt
+[5.417s] reading manifest file '../../build/perception/perception.egg-info/SOURCES.txt'
+[5.421s] writing manifest file '../../build/perception/perception.egg-info/SOURCES.txt'
+[5.423s] running build
+[5.423s] running build_py
+[5.425s] copying perception/__init__.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build/lib/perception
+[5.430s] copying perception/interactive_plane.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build/lib/perception
+[5.436s] copying perception/process_pointcloud.py -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build/lib/perception
+[5.443s] running install
+[5.450s] running install_lib
+[5.561s] running install_data
+[5.563s] copying resource/perception -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/ament_index/resource_index/packages
+[5.569s] copying package.xml -> /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/share/perception
+[5.576s] running install_egg_info
+[5.671s] removing '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages/perception-0.0.0-py3.10.egg-info' (and everything under it)
+[5.678s] Copying ../../build/perception/perception.egg-info to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages/perception-0.0.0-py3.10.egg-info
+[5.719s] running install_scripts
+[6.063s] Installing interactive_plane script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/perception
+[6.067s] Installing process_pointcloud script to /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/perception
+[6.071s] writing list of installed files to '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/install.log'
+[6.133s] Invoked command in '/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/perception' returned '0': PYTHONPATH=/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/prefix_override:/home/cc/ee106a/fa25/class/ee106a-adc/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/perception/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/perception build --build-base /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/build install --record /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/perception/install.log --single-version-externally-managed install_data

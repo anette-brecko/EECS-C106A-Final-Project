@@ -10,6 +10,10 @@ import pyroki as pk
 from jax import Array
 from jax.typing import ArrayLike 
 
+jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
+jax.config.update("jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir")
+
+
 class TimeVar(
     jaxls.Var[Array],
     default_factory=lambda: jnp.array([1.0]),  # Start with a factor of 1.0
@@ -209,15 +213,23 @@ def solve_static_trajopt(
         qs_list = [vals[v] for v in traj_vars_tuple]
         qs_full = jnp.stack(qs_list)
 
-        q_curr = qs_full[idx_floor]
-        q_next = qs_full[idx_ceil]
-        
-        # 4. Interpolate Joint Position and Velocity
-        # Linear Interpolation for q
+        q_prev = qs_full[idx_floor - 1]
+        q_curr = qs_full[idx_floor]     # q at t_floor
+        q_next = qs_full[idx_ceil]      # q at t_ceil
+        q_next_next = qs_full[idx_ceil + 1]
+
+        # --- 3. Interpolate Position (Still Linear) ---
         q_release = (1.0 - alpha) * q_curr + alpha * q_next
-        
-        # Joint Velocity is the slope between the two points
-        q_dot_release = (q_next - q_curr) / dt
+
+        # --- 4. Interpolate Central Difference Velocity ---
+        # Velocity at q_curr (t_floor) using central difference: (q_next - q_prev) / 2*dt
+        q_dot_floor = (q_next - q_prev) / (2.0 * dt)
+
+        # Velocity at q_next (t_ceil) using central difference: (q_next_next - q_curr) / 2*dt
+        q_dot_ceil = (q_next_next - q_curr) / (2.0 * dt) 
+
+        # Linear interpolation of the two velocity estimates
+        q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
 
         # Get starting position of launch
         q = robot.forward_kinematics(q_release)
@@ -300,20 +312,28 @@ def solve_static_trajopt(
         qs_list = [vals[v] for v in traj_vars_tuple]
         qs_full = jnp.stack(qs_list)
 
-        q_curr = qs_full[idx_floor]
-        q_next = qs_full[idx_ceil]
-        
-        # 4. Interpolate Joint Position and Velocity
-        # Linear Interpolation for q
+        q_prev = qs_full[idx_floor - 1]
+        q_curr = qs_full[idx_floor]     # q at t_floor
+        q_next = qs_full[idx_ceil]      # q at t_ceil
+        q_next_next = qs_full[idx_ceil + 1]
+
+        # --- 3. Interpolate Position (Still Linear) ---
         q_release = (1.0 - alpha) * q_curr + alpha * q_next
-        
-        # Joint Velocity is the slope between the two points
-        q_dot_release = (q_next - q_curr) / dt
+
+        # --- 4. Interpolate Central Difference Velocity ---
+        # Velocity at q_curr (t_floor) using central difference: (q_next - q_prev) / 2*dt
+        q_dot_floor = (q_next - q_prev) / (2.0 * dt)
+
+        # Velocity at q_next (t_ceil) using central difference: (q_next_next - q_curr) / 2*dt
+        q_dot_ceil = (q_next_next - q_curr) / (2.0 * dt) 
+
+        # Linear interpolation of the two velocity estimates
+        q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
 
         # Get starting position of launch
         q = robot.forward_kinematics(q_release)
         R_ee = jaxlie.SE3(jnp.take(q, target_link_index, axis=-2)[..., :4])
-        z_ee = R_ee.rotation() @ jnp.array([0.0, 0.0, 1.0])
+        y_ee = R_ee.rotation() @ jnp.array([0.0, 1.0, 0.0])
          
         # Get launch velocity
         jacobian = compute_ee_spatial_jacobian(robot, q_release, jnp.array([target_link_index]))
@@ -323,7 +343,7 @@ def solve_static_trajopt(
         v_norm = jnp.linalg.norm(v0) + 1e-6
         v_dir = v0 / v_norm
 
-        return ((z_ee - v_dir) * 40.0).flatten()
+        return ((jnp.cross(y_ee, v_dir)) * 40.0).flatten()
  
 
     factors.extend(
@@ -440,13 +460,13 @@ def generate_samples(
     def gen_orientation_sample(v_rel, x_rel):
         """Generates a random orientation for the end effector"""
         # z-axis should be pointing in v_rel direction
-        z_axis = v_rel / onp.linalg.norm(v_rel)
+        y_axis = v_rel / onp.linalg.norm(v_rel)
 
         # x-axis away from origin
-        x_axis = x_rel / onp.linalg.norm(x_rel)
+        z_axis = x_rel / onp.linalg.norm(x_rel)
         
         # x-axis as cross product of the two
-        y_axis = onp.cross(z_axis, x_axis)
+        x_axis = onp.cross(y_axis, z_axis)
 
         rot = jaxlie.SO3.from_matrix(onp.column_stack((x_axis, y_axis, z_axis)))
 

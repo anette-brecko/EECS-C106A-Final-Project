@@ -14,6 +14,8 @@ import numpy as np
 import jax.numpy as jnp
 import pyroki as pk
 
+from robot_descriptions.loaders.yourdfpy import load_robot_description
+
 from .oneshot_gen_traj import solve_static_trajopt
 from .oneshot_gen_traj import compute_ee_spatial_jacobian
 from .oneshot_gen_traj import solve_single_ik_with_collision
@@ -41,7 +43,7 @@ from .world import World
 
 
 class IKPlanner(Node):
-    def __init__(self, speed=1.0):
+    def __init__(self):
         super().__init__('ik_planner')
 
         # ---- Clients ----
@@ -54,17 +56,19 @@ class IKPlanner(Node):
                 self.get_logger().info(f'Waiting for /{name} service...')
 
         # ----- PyRoki setup -----
-        urdf = load_robot_description("") # TODO: Change to ur7e
+        #urdf_path = "/opt/ros/humble/share/ur_description/urdf/ur.urdf.xacro"
+
+        #urdf = load_xacro_robot(urdf_path)
+        urdf = load_robot_description("ur5_description")
         self.robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
-        default_cfg = np.array([3.141, -1.850, -1.425, -1.405, 1.593, -3.141])
-        self.robot = pk.Robot.from_urdf(self.urdf, default_joint_cfg=default_cfg)
+        default_cfg = np.array([0, -1.850, -1.425, -1.405, 1.593, -3.141])
+        self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
         self.target_link_name = "ee_link"
 
         self.world = World(self.robot, urdf, self.target_link_name) 
 
-        self.SPEED = speed # For slowly testing trajectories...
 
     # -----------------------------------------------------------
     # Compute IK for a given (x, y, z) + quat and current robot joint state
@@ -158,11 +162,8 @@ class IKPlanner(Node):
             7 # TODO: MAX VEL! Make parameter
         )
 
-    def _trajectory_points_to_msg(self, traj_points, dt) -> RobotTrajectory:
+    def _trajectory_points_to_msg(self, traj_points, dt) -> JointTrajectory:
         """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
-    
-        # 1. Initialize the main RobotTrajectory container
-        robot_traj_msg = RobotTrajectory()
         
         # 2. Initialize the JointTrajectory (the core of the message)
         joint_traj = JointTrajectory()
@@ -183,19 +184,17 @@ class IKPlanner(Node):
             # Position: The core joint configuration (Q)
             point.positions = q.tolist()
             point.velocities = velocities[i].tolist()
-            point.accelerations = [0] * len(q)
+            point.accelerations = [0.0] * len(q)
             
             # Time when this point should be reached
-            time_from_start += dt * self.SPEED
+            time_from_start += dt
             point.time_from_start.sec = int(time_from_start)
             point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
             
             joint_traj.points.append(point)
 
-        robot_traj_msg.joint_trajectory = joint_traj
+        return joint_traj
         
-        return robot_traj_msg
-
     def plan_to_target(self, start_joint_state, target_pos, timesteps, time_horizon):
         """ Return message of planned trajectory and visualize before execution"""
         dt = time_horizon / timesteps

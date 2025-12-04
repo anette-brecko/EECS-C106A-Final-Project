@@ -23,18 +23,18 @@ class World:
         self.table_width = 0.6 # Along x-axis
         self.table_length = 2.0 # Along y-axis
         self.table_height = 0.7366
-        self.table_offset = np.array([0.4, 0.0, -0.18]) # As measured by center of the edge of the table
+        self.table_offset = np.array([-0.4, 0.0, -0.18]) # As measured by center of the edge of the table
 
         # Floor parameters
         self.min_height = -0.2 # Won't allow robot to go below this height
 
         # Wall parameters
-        self.wall_distance = .7874 # in -x direction (wall is behind robot)
+        self.wall_distance = .7874 # in x direction (wall is behind robot)
 
         # Pillar parameters
         self.pillar_length = 0.23
         self.pillar_height = 0.91
-        return
+        self.visualize_world()
 
     def visualize_all(self, start_cfg, target_pos, traj, t_release, t_target, timesteps, dt):
         ball_traj = self._ball_trajectory(traj, t_release, dt)
@@ -55,8 +55,7 @@ class World:
                 transform=trimesh.transformations.translation_matrix(
                     np.array([0, 0.0, self.min_height])
                 ),
-            ),
-            color=(255, 0, 0)
+            )
         )
 
         # Visualize wall
@@ -65,7 +64,7 @@ class World:
             trimesh.creation.box(
                 extents=(0.1, 2.0, 2.0),
                 transform=trimesh.transformations.translation_matrix(
-                    np.array([-self.wall_distance, 0.0, 0.0])
+                    np.array([self.wall_distance, 0.0, 0.0])
                 ),
             ),
         )
@@ -76,7 +75,7 @@ class World:
             trimesh.creation.box(
                 extents=(self.table_width, self.table_length, self.table_height),
                 transform=trimesh.transformations.translation_matrix(
-                    np.array([self.table_width / 2.0, 0, -self.table_height / 2]) + self.table_offset
+                    np.array([-self.table_width / 2.0, 0, -self.table_height / 2]) + self.table_offset
                 ),
             ),
         )
@@ -193,7 +192,7 @@ class World:
         )
         # - Wall
         wall_coll = pk.collision.HalfSpace.from_point_and_normal(
-            np.array([-self.wall_distance, 0, 0]), np.array([1.0, 0.0, 0.0])
+            np.array([self.wall_distance, 0, 0]), np.array([-1.0, 0.0, 0.0])
         )
 
         # TODO: Pillar
@@ -212,7 +211,7 @@ class World:
                 table_intervals.reshape(-1, 1),
             ],
             axis=1,
-        ) + self.table_offset + np.array([self.table_width / 2.0, 0.0, -self.table_height / 2])
+        ) + self.table_offset + np.array([-self.table_width / 2.0, 0.0, -self.table_height / 2])
         table_coll = pk.collision.Capsule.from_radius_height(
             position=translation,
             wxyz=np.array([.707, .707, 0, 0]),

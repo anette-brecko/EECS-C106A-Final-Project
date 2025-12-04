@@ -26,7 +26,8 @@ setup(
             'tf = planning.static_tf_transform:main',
             'ik = planning.ik:main',
             'transform_cube_pose = planning.transform_cube_pose:main',
-            'test = planning.test_launch:main'
+            'test = planning.test_launch:main',
+            'sim = planning.sim:main'
         ],
     },
 )
