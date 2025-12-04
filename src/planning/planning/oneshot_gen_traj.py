@@ -102,7 +102,7 @@ def solve_static_trajopt(
             robot,
             robot_coll, traj_vars,
             0.005,
-            50.0,
+            2000.0 / timesteps,
         )
     )
 
@@ -457,8 +457,6 @@ def generate_samples(
         return random_rot.wxyz
 
     while len(samples) < num_samples:
-        if (len(samples) % 50) == 0: print(len(samples))
-
         x_rel = jnp.array(gen_pos_sample())
         t_rel = gen_t_rel_sample()
 
@@ -530,6 +528,8 @@ def generate_samples(
         traj_points = [traj(t) for t in dt * onp.arange(0, timesteps)]
         traj_points = jnp.stack(traj_points)
         samples.append((traj_points, t_rel, t_rel + dt_air))
+        
+        if (len(samples) % 10) == 0 and samples: print(f'Generated {len(samples)} samples')
     
     return samples
 

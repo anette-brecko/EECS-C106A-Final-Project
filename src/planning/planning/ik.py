@@ -1,9 +1,10 @@
 import rclpy
 from rclpy.node import Node
 from moveit_msgs.srv import GetPositionIK, GetMotionPlan
-from moveit_msgs.msg import PositionIKRequest, Constraints, JointConstraint
+from moveit_msgs.msg import PositionIKRequest, Constraints, JointConstraint, RobotTrajectory
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 import sys
 
@@ -57,9 +58,9 @@ class IKPlanner(Node):
         self.robot_coll = pk.collision.RobotCollision.from_urdf(self.urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
-        default_cfg = np.zeros(6) # TODO: UR7e default_config
+        default_cfg = np.array([3.141, -1.850, -1.425, -1.405, 1.593, -3.141])
         self.robot = pk.Robot.from_urdf(self.urdf, default_joint_cfg=default_cfg)
-        self.target_link_name = "wrist_3_link"
+        self.target_link_name = "ee_link"
 
         self.world = World(self.robot, self.urdf, self.target_link_name) 
 
@@ -155,16 +156,83 @@ class IKPlanner(Node):
             7 # TODO: MAX VEL! Make parameter
         )
 
-    def _trajectory_points_to_msg(self, traj, dt):
+    def _trajectory_points_to_msg(self, traj_points, dt) -> RobotTrajectory:
         """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
-        pass
-
-    def plan_to_target(self, start_cfg, target_pos, timesteps, dt):
-        """ Return message of planned trajectory and visualize before execution"""
-        traj, t_release, t_target = self._solve_to_target(start_cfg, target_pos, timesteps, dt)
-        self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
-        return self._trajectory_points_to_msg(np.array(traj), dt)
     
+        # 1. Initialize the main RobotTrajectory container
+        robot_traj_msg = RobotTrajectory()
+        
+        # 2. Initialize the JointTrajectory (the core of the message)
+        joint_traj = JointTrajectory()
+        joint_traj.joint_names = [
+                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+            ]
+
+
+        time_from_start = 0.0
+
+        velocities = self._estimate_gradients(traj_points, dt)
+        
+        # 3. Iterate through trajectory points
+        for i, q in enumerate(traj_points):
+            point = JointTrajectoryPoint()
+            
+            # Position: The core joint configuration (Q)
+            point.positions = q.tolist()
+            point.velocities = velocities[i].tolist()
+            point.accelerations = [0] * len(q)
+            
+            # Time when this point should be reached
+            time_from_start += dt
+            point.time_from_start.sec = int(time_from_start)
+            point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
+            
+            joint_traj.points.append(point)
+
+        robot_traj_msg.joint_trajectory = joint_traj
+        
+        return robot_traj_msg
+
+    def plan_to_target(self, start_joint_state, target_pos, timesteps, time_horizon):
+        """ Return message of planned trajectory and visualize before execution"""
+        dt = time_horizon / timesteps
+        start_cfg = self._joint_state_to_cfg(start_joint_state)
+
+        # Solve
+        traj, t_release, t_target = self._solve_to_target(start_cfg, target_pos, timesteps, dt)
+
+        # Visualize
+        self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
+
+        return self._trajectory_points_to_msg(np.array(traj), dt)
+
+    def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
+        """ Convert JointState to configuration vector """
+        data_dict = dict(zip(joint_state.name, joint_state.position))
+        target_joint_names = [
+                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+        ]
+        return np.array([data_dict[name] for name in target_joint_names])
+   
+    def _estimate_gradients(self, data: np.ndarray, dt: float) -> np.ndarray:
+        """
+        Generic finite difference function. 
+        Works for calculating Velocity (from Pos) or Acceleration (from Vel).
+        """
+        gradients = np.zeros_like(data)
+        
+        # Central Difference (Interior)
+        gradients[1:-1] = (data[2:] - data[:-2]) / (2 * dt)
+        
+        # Forward Difference (Start)
+        gradients[0] = (-3*data[0] + 4*data[1] - data[2]) / (2 * dt)
+        
+        # Backward Difference (End)
+        gradients[-1] = (3*data[-1] - 4*data[-2] + data[-3]) / (2 * dt)
+        
+        return gradients
     
 def main(args=None):
     rclpy.init(args=args)

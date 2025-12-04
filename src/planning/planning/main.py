@@ -14,11 +14,11 @@ import numpy as np
 
 from planning.ik import IKPlanner
 
-class UR7e_CubeGrasp(Node):
+class UR7e_BallGrasp(Node):
     def __init__(self):
-        super().__init__('cube_grasp')
+        super().__init__('ball_grasp')
 
-        self.cube_pub = self.create_subscription(PointStamped, '/cube_pose_base', self.cube_callback, 1) # TODO: CHECK IF TOPIC ALIGNS WITH YOURS
+        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) # TODO: CHECK IF TOPIC ALIGNS WITH YOURS
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
 
         self.exec_ac = ActionClient(
@@ -28,7 +28,7 @@ class UR7e_CubeGrasp(Node):
 
         self.gripper_cli = self.create_client(Trigger, '/toggle_gripper')
 
-        self.cube_pose = None
+        self.ball_pose = None
         self.current_plan = None
         self.joint_state = None
 
@@ -39,40 +39,40 @@ class UR7e_CubeGrasp(Node):
     def joint_state_callback(self, msg: JointState):
         self.joint_state = msg
 
-    def cube_callback(self, cube_pose):
-        if self.cube_pose is not None:
+    def ball_callback(self, ball_pose):
+        if self.ball_pose is not None:
             return
 
         if self.joint_state is None:
             self.get_logger().info("No joint state yet, cannot proceed")
             return
 
-        self.cube_pose = cube_pose
+        self.ball_pose = ball_pose
 
         # -----------------------------------------------------------
         # TODO: In the following section you will add joint angles to the job queue. 
         # Entries of the job queue should be of type either JointState or String('toggle_grip')
-        # Think about you will leverage the IK planner to get joint configurations for the cube grasping task.
+        # Think about you will leverage the IK planner to get joint configurations for the ball grasping task.
         # To understand how the queue works, refer to the execute_jobs() function below.
         # -----------------------------------------------------------
 
-        # 1) Move to Pre-Grasp Position (gripper above the cube)
+        # 1) Move to Pre-Grasp Position (gripper above the ball)
         '''
         Use the following offsets for pre-grasp position:
         x offset: 0.0
         y offset: -0.035 (Think back to lab 5, why is this needed?)
-        z offset: +0.185 (to be above the cube by accounting for gripper length)
+        z offset: +0.185 (to be above the ball by accounting for gripper length)
         '''
-        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, cube_pose.point.x, cube_pose.point.y - 0.035, cube_pose.point.z + 0.185)
+        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y - 0.035, ball_pose.point.z + 0.185)
         self.job_queue.append(pre_grasp_state)
 
-        # 2) Move to Grasp Position (lower the gripper to the cube)
+        # 2) Move to Grasp Position (lower the gripper to the ball)
         '''
-        Note that this will again be defined relative to the cube pose. 
+        Note that this will again be defined relative to the ball pose. 
         DO NOT CHANGE z offset lower than +0.16. 
         '''
 
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, cube_pose.point.x, cube_pose.point.y - 0.035, cube_pose.point.z + 0.158)
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y - 0.035, ball_pose.point.z + 0.158)
         self.job_queue.append(grasp_state)
 
         # 3) Close the gripper. See job_queue entries defined in init above for how to add this action.
@@ -83,11 +83,11 @@ class UR7e_CubeGrasp(Node):
 
         # 5) Move to release Position
         '''
-        We want the release position to be 0.4m on the other side of the aruco tag relative to initial cube pose.
+        We want the release position to be 0.4m on the other side of the aruco tag relative to initial ball pose.
         Which offset will you change to achieve this and in what direction?
         '''
-        sgn = - cube_pose.point.x / abs(cube_pose.point.x)
-        release_state = self.ik_planner.compute_ik(pre_grasp_state, 0.4 * sgn, cube_pose.point.y - 0.035, cube_pose.point.z + 0.185)
+        sgn = - ball_pose.point.x / abs(ball_pose.point.x)
+        release_state = self.ik_planner.compute_ik(pre_grasp_state, 0.4 * sgn, ball_pose.point.y - 0.035, ball_pose.point.z + 0.185)
         self.job_queue.append(release_state)
 
         # 6) Release the gripper
@@ -171,7 +171,7 @@ class UR7e_CubeGrasp(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = UR7e_CubeGrasp()
+    node = UR7e_BallGrasp()
     rclpy.spin(node)
     node.destroy_node()
 

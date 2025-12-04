@@ -20,27 +20,27 @@ class World:
         self.target_link_name = target_link_name
 
         # Table parameters
-        self.table_length = 0.2
-        self.table_width = 0.3
+        self.table_width = 0.2 # Along x-axis
+        self.table_length = 1.0 # Along y-axis
         self.table_height = 0.4
-        self.table_offset = np.array([0.5, 0.0, 0])
+        self.table_offset = np.array([0.6, 0.0, -0.05]) # As measured by center of the edge of the table
 
         # Floor parameters
-        self.min_height = -0.3 # Won't allow robot to go below this height
+        self.min_height = -0.5 # Won't allow robot to go below this height
 
         # Wall parameters
-        self.wall_distance = 0.1 # in -x direction (wall is behind robot)
+        self.wall_distance = 1.0 # in -x direction (wall is behind robot)
 
         # Pillar parameters
-        self.length = 0.1
-        self.height = 0.4
+        self.pillar_length = 0.1
+        self.pillar_height = 0.4
         return
 
     def visualize_all(self, start_cfg, target_pos, traj, t_release, t_target, timesteps, dt):
         ball_traj = self._ball_trajectory(traj, t_release, dt)
         self.visualize_world()
         self.visualize_tf(start_cfg, target_pos)
-        self.visualize_ball_trajectory(ball_traj, t_release, t_target, 1.0, 30)
+        self.visualize_ball_trajectory(ball_traj, t_release, t_target, 0.2, 30)
         self.visualize_ee_waypoints(traj)
         self.animate(ball_traj, traj, t_release, t_target, timesteps, dt)
 
@@ -53,7 +53,7 @@ class World:
             trimesh.creation.box(
                 extents=(2.0, 2.0, 0.001),
                 transform=trimesh.transformations.translation_matrix(
-                    np.array([0, 0.0, -self.min_height])
+                    np.array([0, 0.0, self.min_height])
                 ),
             ),
         )
@@ -73,9 +73,9 @@ class World:
         self.server.scene.add_mesh_trimesh(
             "table",
             trimesh.creation.box(
-                extents=(self.table_length, self.table_width, self.table_height),
+                extents=(self.table_width, self.table_length, self.table_height),
                 transform=trimesh.transformations.translation_matrix(
-                    np.array([0, 0.0, -self.table_height / 2]) + self.table_offset
+                    np.array([self.table_width / 2.0, 0, -self.table_height / 2]) + self.table_offset
                 ),
             ),
         )
@@ -86,9 +86,9 @@ class World:
         self.server.scene.add_mesh_trimesh(
             "pillar",
             trimesh.creation.box(
-                extents=(self.length, self.length, self.height),
+                extents=(self.pillar_length, self.pillar_length, self.pillar_height),
                 transform=trimesh.transformations.translation_matrix(
-                    np.array([0, 0.0, -self.height / 2])
+                    np.array([0, 0.0, -self.pillar_height / 2])
                 ),
             ),
         )
@@ -125,9 +125,10 @@ class World:
         )
 
     def visualize_ee_waypoints(self, traj):
+        traj_pos = [self._joints_to_pos_wxyz(q)[0] for q in traj]
         self.server.scene.add_point_cloud(
             "/traj_points",
-            points=np.array(traj),
+            points=np.array(traj_pos),
             point_size=0.005,
             colors=(0, 0, 255)
         )
@@ -179,6 +180,10 @@ class World:
         twist = np.array(jnp.take(pos, self.robot.links.names.index(self.target_link_name), axis=-2))
         return twist[..., 4:], twist[..., :4]
 
+    def _visualize_joints(self, q):
+        self.urdf_vis.update_cfg(q)
+
+
     def gen_world_coll(self):
         """Define obstacles in environment."""
         # - Ground
@@ -191,35 +196,27 @@ class World:
         )
 
         # TODO: Pillar
+        pillar_coll = pk.collision.Capsule.from_radius_height(
+            position=np.array([0.0, 0.0, -self.pillar_height / 2]),
+            radius=self.pillar_length / 2,
+            height=self.pillar_height,
+        )
 
         # TODO: Table
-        table_intervals = np.arange(start=0, stop=self.table_length, step=0.05) 
+        table_intervals = np.linspace(start=-self.table_height / 2.0 + self.table_width / 2.0, stop=self.table_height / 2.0 - self.table_width / 2.0, num=2)
         translation = np.concatenate(
             [
-                table_intervals.reshape(-1, 1),
                 np.full((table_intervals.shape[0], 1), 0.0),
-                np.full((table_intervals.shape[0], 1), self.table_height / 2),
+                np.full((table_intervals.shape[0], 1), 0.0),
+                table_intervals.reshape(-1, 1),
             ],
             axis=1,
-        ) + self.table_offset + np.array([0.0, 0.0, -self.table_height / 2])
-        print(translation)
-
-        table_coll_1 = pk.collision.Capsule.from_radius_height(
-            position=translation + np.array([0.0, -self.table_width / 4, 0.0]),
-            radius=np.full((translation.shape[0], 1), self.table_width / 4),
-            height=np.full((translation.shape[0], 1), self.table_height),
-        )
-
-        table_coll_2 = pk.collision.Capsule.from_radius_height(
-            position=translation + np.array([0.0, self.table_width / 4, 0.0]),
-            radius=np.full((translation.shape[0], 1), self.table_width / 4),
-            height=np.full((translation.shape[0], 1), self.table_height),
-        )
-
+        ) + self.table_offset + np.array([self.table_width / 2.0, 0.0, -self.table_height / 2])
         table_coll = pk.collision.Capsule.from_radius_height(
             position=translation,
+            wxyz=np.array([.707, .707, 0, 0]),
             radius=np.full((translation.shape[0], 1), self.table_width / 2),
-            height=np.full((translation.shape[0], 1), self.table_height),
+            height=np.full((translation.shape[0], 1), self.table_length),
         )
 
         # TODO: Monitor
