@@ -32,7 +32,7 @@ def main():
     # Generate example trajectory
     start_cfg = default_cfg
     target_pos = np.array([2.0, -0.3, .7])
-    time_horizon = 1.2
+    time_horizon = 1.19
     timesteps = 40
     dt = time_horizon / timesteps
 

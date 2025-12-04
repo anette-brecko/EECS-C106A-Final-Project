@@ -14,11 +14,10 @@ import numpy as np
 
 from planning.ik import IKPlanner
 
-class UR7e_BallGraspAndLaunch(Node):
+class UR7e_TestLaunch(Node):
     def __init__(self):
         super().__init__('ball_grasp')
 
-        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) # TODO: CHECK IF TOPIC ALIGNS WITH YOURS
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
 
         self.exec_ac = ActionClient(
@@ -28,56 +27,29 @@ class UR7e_BallGraspAndLaunch(Node):
 
         self.gripper_cli = self.create_client(Trigger, '/toggle_gripper')
 
-        self.ball_pose = None
-        self.current_plan = None
         self.joint_state = None
-        self.ball_loaded = False
 
-        self.ik_planner = IKPlanner()
+        self.SPEED = 10.0
+        self.ik_planner = IKPlanner(self.SPEED)
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
+        self.target_pose = np.array([2.0, 0.3, .7])
+
     def joint_state_callback(self, msg: JointState):
+        if self.joint_state is not None:
+            self.get_logger().info("Already moved")
+            return
+
         self.joint_state = msg
 
-    def ball_callback(self, ball_pose):
-        if self.ball_pose is not None:
-            return
-
-        if self.joint_state is None:
-            self.get_logger().info("No joint state yet, cannot proceed")
-            return
-
-        # 1) Move to Pre-Grasp Position (gripper above the ball)
-        # TODO: Ball offsets!!!
-        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y - 0.035, ball_pose.point.z + 0.185)
-        self.job_queue.append(pre_grasp_state)
-
-        # 2) Move to Grasp Position (lower the gripper to the ball)
-        # TODO: Ball offsets!!!
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y - 0.035, ball_pose.point.z + 0.158)
-        self.job_queue.append(grasp_state)
-
-        # 3) Close the gripper. See job_queue entries defined in init above for how to add this action.
+        # 1) Move to Pre-Launch Position after gripping
         self.job_queue.append('toggle_grip')
         
-        # 4) Move back to Pre-Grasp Position
-        self.launch_state = pre_grasp_state
-        self.job_queue.append(self.launch_state)
-        self.execute_jobs()
-        self.ball_loaded = True
-
-
-    def target_callback(self, target_pose):
-        if self.job_queue or not self.ball_loaded: # Make sure ball is loaded and ready to launch
-            return
-
-        if self.joint_state is None:
-            self.get_logger().info("No joint state yet, cannot proceed")
-            return
-
+        self.launch_state = self.ik_planner.compute_ik(self.joint_state, 0, 0, 0, 0, 0, 0, 0) # TODO: Fill!
+        
         # 5) Launch Ball
-        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, target_pose, 50, 1.5)
+        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5)
         self.job_queue.append((throwing_trajectory, t_release))
 
         # 6) Release the gripper
@@ -159,8 +131,8 @@ class UR7e_BallGraspAndLaunch(Node):
                        feedback_msg.feedback.actual.time_from_start.nanosec * 1e-9
 
         # If we passed the release time, FIRE!
-        if current_time >= self._current_release_time:
-            self.get_logger().info(f"RELEASE TRIGGERED at {current_time:.3f}s (Target: {self._current_release_time:.3f}s)")
+        if current_time >= self._current_release_time * self.SPEED:
+            self.get_logger().info(f"RELEASE TRIGGERED at {current_time:.3f}s (Target: {self._current_release_time * self.SPEED:.3f}s)")
             
             # Open gripper
             req = Trigger.Request()

@@ -41,7 +41,7 @@ from world import World
 
 
 class IKPlanner(Node):
-    def __init__(self):
+    def __init__(self, speed=1.0):
         super().__init__('ik_planner')
 
         # ---- Clients ----
@@ -54,15 +54,17 @@ class IKPlanner(Node):
                 self.get_logger().info(f'Waiting for /{name} service...')
 
         # ----- PyRoki setup -----
-        self.urdf = load_robot_description("ur5_description") # TODO: Change to ur7e
-        self.robot_coll = pk.collision.RobotCollision.from_urdf(self.urdf)
+        urdf = load_robot_description("") # TODO: Change to ur7e
+        self.robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
         default_cfg = np.array([3.141, -1.850, -1.425, -1.405, 1.593, -3.141])
         self.robot = pk.Robot.from_urdf(self.urdf, default_joint_cfg=default_cfg)
         self.target_link_name = "ee_link"
 
-        self.world = World(self.robot, self.urdf, self.target_link_name) 
+        self.world = World(self.robot, urdf, self.target_link_name) 
+
+        self.SPEED = speed # For slowly testing trajectories...
 
     # -----------------------------------------------------------
     # Compute IK for a given (x, y, z) + quat and current robot joint state
@@ -184,7 +186,7 @@ class IKPlanner(Node):
             point.accelerations = [0] * len(q)
             
             # Time when this point should be reached
-            time_from_start += dt
+            time_from_start += dt * self.SPEED
             point.time_from_start.sec = int(time_from_start)
             point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
             
@@ -205,7 +207,7 @@ class IKPlanner(Node):
         # Visualize
         self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
 
-        return self._trajectory_points_to_msg(np.array(traj), dt)
+        return self._trajectory_points_to_msg(np.array(traj), dt), t_release
 
     def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
         """ Convert JointState to configuration vector """
