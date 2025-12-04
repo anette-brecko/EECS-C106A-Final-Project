@@ -162,7 +162,7 @@ class UR7e_TestLaunch(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = UR7e_BallGraspAndLaunch()
+    node = UR7e_TestLaunch()
     rclpy.spin(node)
     node.destroy_node()
 
