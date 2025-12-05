@@ -35,6 +35,7 @@ class World:
         self.pillar_length = 0.23
         self.pillar_height = 0.91
         self.visualize_world()
+        self._visualize_joints(np.array(robot.joint_var_cls.default_factory()))
 
     def visualize_all(self, start_cfg, target_pos, traj, t_release, t_target, timesteps, dt):
         ball_traj = self._ball_trajectory(traj, t_release, dt)

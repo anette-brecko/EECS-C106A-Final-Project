@@ -14,7 +14,8 @@ def load_xacro_robot():
         tuple: (pk.Robot, pk.collision.RobotCollision, yourdfpy.URDF)
     """
     ur_desc_path = get_package_share_directory('ur_description')
-    xacro_path = os.path.join(ur_desc_path, 'urdf', 'ur.urdf.xacro')
+    # xacro_path = os.path.join(ur_desc_path, 'urdf', 'ur.urdf.xacro')
+    xacro_path = os.path.join('src', 'planning', 'planning', 'ur7e_with_tool.urdf.xacro')
 
     if not os.path.exists(xacro_path):
         raise FileNotFoundError(f"XACRO file not found: {xacro_path}")
@@ -24,6 +25,7 @@ def load_xacro_robot():
         mappings = {
             'ur_type': 'ur7e',
             'name': 'ur',
+            'tool_length_m': '0.10'
         }
         doc = xacro.process_file(xacro_path, mappings=mappings)
         urdf_string = doc.toxml()

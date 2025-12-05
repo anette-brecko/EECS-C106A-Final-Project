@@ -33,22 +33,28 @@ class UR7e_TestLaunch(Node):
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
-        self.target_pose = np.array([-2.0, 0.3, .7])
+        self.target_pose = np.array([0.3, -2.0, .7])
 
     def joint_state_callback(self, msg: JointState):
         if self.joint_state is not None:
             #self.get_logger().info("Already moved")
             return
 
+        self.get_logger().info("Getting ready!")
+
         self.joint_state = msg
 
         # 1) Move to Pre-Launch Position after gripping
+        self.get_logger().info("Toggling grip!")
+
         self.job_queue.append('toggle_grip')
-        
-        self.launch_state = self.ik_planner.compute_ik(self.joint_state, -.61, 0.406, 0.0)
+
+        self.get_logger().info("Computing IK to Launch state")        
+        self.launch_state = self.ik_planner.compute_ik(self.joint_state, 0.406, .61, 0.0)
         self.job_queue.append(self.launch_state)
         
         # 5) Launch Ball
+        self.get_logger().info("Computing trajectory")        
         throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5)
         self.job_queue.append((throwing_trajectory, t_release))
 

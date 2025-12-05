@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="u7re_with_tool">
+  <xacro:arg name="tool_length_m" default="0.10" /> 
+
+  <xacro:arg name="original_xacro" default="$(find ur_description)/urdf/ur.urdf.xacro" />
+  
+  <xacro:arg name="name" default="ur"/>
+  <xacro:arg name="ur_type" default="ur7e"/>
+  <xacro:arg name="tf_prefix" default="" />
+  <xacro:arg name="sim_gazebo" default="false" />
+  <xacro:arg name="sim_ignition" default="false" />
+  <xacro:include filename="$(arg original_xacro)">
+    <xacro:arg name="name" value="$(arg name)"/>
+    <xacro:arg name="ur_type" value="$(arg ur_type)"/>
+    <xacro:arg name="tf_prefix" value="$(arg tf_prefix)"/>
+    <xacro:arg name="sim_gazebo" value="$(arg sim_gazebo)"/>
+    <xacro:arg name="sim_ignition" value="$(arg sim_ignition)"/>
+    </xacro:include>
+
+  <link name="tool_ee_link"/>
+
+  <joint name="tool_ee_joint" type="fixed">
+    <parent link="wrist_3_link"/>
+    <child link="tool_ee_link"/>
+    <origin xyz="0 0 -$(arg tool_length_m)" rpy="0 0 0"/>
+  </joint>
+
+</robot>

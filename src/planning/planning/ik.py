@@ -66,7 +66,7 @@ class IKPlanner(Node):
         # For UR5 it's important to initialize the robot in a safe configuration;
         default_cfg = np.array([4.722, -1.850, -1.425, -1.405, 1.593, -3.141])
         self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
-        self.target_link_name = "wrist_3_link"
+        self.target_link_name = "tool_ee_link"
 
         self.world = World(self.robot, urdf, self.target_link_name) 
 

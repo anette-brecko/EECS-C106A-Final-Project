@@ -9,11 +9,11 @@ import numpy as onp
 import pyroki as pk
 from jax import Array
 from jax.typing import ArrayLike 
-import os
-jax.config.update("jax_logging_level", "DEBUG")
-jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
-jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
-jax.config.update("jax_explain_cache_misses", True)
+# import os
+# jax.config.update("jax_logging_level", "WARNING")
+# jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
+# jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
+#jax.config.update("jax_explain_cache_misses", True)
 
 
 class TimeVar(
@@ -464,11 +464,12 @@ def generate_samples(
         # z-axis should be pointing in v_rel direction
         y_axis = v_rel / onp.linalg.norm(v_rel)
 
-        # x-axis away from origin
-        z_axis = x_rel / onp.linalg.norm(x_rel)
-        
+        # z-axis should be somewhat away from origin
+        away = x_rel / onp.linalg.norm(x_rel)
+                
         # x-axis as cross product of the two
-        x_axis = onp.cross(y_axis, z_axis)
+        x_axis = onp.cross(y_axis, away)
+        z_axis = onp.cross(x_axis, y_axis)
 
         rot = jaxlie.SO3.from_matrix(onp.column_stack((x_axis, y_axis, z_axis)))
 

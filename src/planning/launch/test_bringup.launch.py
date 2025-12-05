@@ -24,13 +24,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    ik_node = Node(
-        package='planning',
-        executable='ik',
-        name='ik_node',
-        output='screen',
-    )
-
 
     # MoveIt 
     ur_type = LaunchConfiguration("ur_type", default="ur7e")
@@ -63,7 +56,6 @@ def generate_launch_description():
     
     return LaunchDescription([
         static_base_world,
-        ik_node,
         moveit_launch,
         shutdown_on_any_exit
     ])

@@ -22,12 +22,10 @@ def main():
     # For UR5 it's important to initialize the robot in a safe configuration;
     default_cfg = np.array([4.722, -1.850, -1.425, -1.405, 1.593, -3.141]) # TODO: Check
     robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
-    target_link_name = "wrist_3_link"
+    target_link_name = "tool_ee_link"
 
     # Initialize world
     world = World(robot, urdf, target_link_name)
-
-    world._visualize_joints(default_cfg)
 
     # Generate example trajectory
     start_cfg = default_cfg
