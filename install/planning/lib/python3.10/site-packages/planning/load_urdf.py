@@ -3,28 +3,33 @@ import xacro
 import yourdfpy
 import pyroki as pk
 import tempfile
-def load_xacro_robot(xacro_path: str):
+from ament_index_python.packages import get_package_share_directory 
+import subprocess
+
+def load_xacro_robot():
     """
     Parses XACRO, loads it into yourdfpy, and creates PyROKI objects.
     
     Returns:
         tuple: (pk.Robot, pk.collision.RobotCollision, yourdfpy.URDF)
     """
+    ur_desc_path = get_package_share_directory('ur_description')
+    xacro_path = os.path.join(ur_desc_path, 'urdf', 'ur.urdf.xacro')
+
     if not os.path.exists(xacro_path):
         raise FileNotFoundError(f"XACRO file not found: {xacro_path}")
 
-    mappings = {
-        'ur_type': 'ur5e',
-        'name': 'ur',
-        #'tf_prefix':'',
-            }
-    # 1. Process XACRO -> XML String
+
     try:
+        mappings = {
+            'ur_type': 'ur7e',
+            'name': 'ur',
+        }
         doc = xacro.process_file(xacro_path, mappings=mappings)
         urdf_string = doc.toxml()
     except Exception as e:
         raise ValueError(f"XACRO processing failed: {e}")
-
+    
     # 2. Save to a temp file (needed for yourdfpy to resolve mesh paths)
     # We save it in the same folder as the XACRO to keep relative paths valid.
     temp_dir = tempfile.gettempdir()
@@ -34,7 +39,7 @@ def load_xacro_robot(xacro_path: str):
         f.write(urdf_string)
 
     try:
-        urdf_model = yourdfpy.URDF.load(temp_urdf_path)
+        urdf_model = yourdfpy.URDF.load(temp_urdf_path, mesh_dir=ur_desc_path)
     finally:
         # 6. Cleanup
         if os.path.exists(temp_urdf_path):

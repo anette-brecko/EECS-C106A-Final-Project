@@ -9,9 +9,11 @@ import numpy as onp
 import pyroki as pk
 from jax import Array
 from jax.typing import ArrayLike 
-
-jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
-jax.config.update("jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir")
+import os
+jax.config.update("jax_logging_level", "DEBUG")
+jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
+jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
+jax.config.update("jax_explain_cache_misses", True)
 
 
 class TimeVar(

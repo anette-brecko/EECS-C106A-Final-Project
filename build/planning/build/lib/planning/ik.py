@@ -21,6 +21,7 @@ from .oneshot_gen_traj import compute_ee_spatial_jacobian
 from .oneshot_gen_traj import solve_single_ik_with_collision
 
 from .world import World
+from .load_urdf import load_xacro_robot
 
 # Example usage:
 # -------------------------------------------------
@@ -58,14 +59,14 @@ class IKPlanner(Node):
         # ----- PyRoki setup -----
         #urdf_path = "/opt/ros/humble/share/ur_description/urdf/ur.urdf.xacro"
 
-        #urdf = load_xacro_robot(urdf_path)
-        urdf = load_robot_description("ur5_description")
+        urdf = load_xacro_robot()
+        #urdf = load_robot_description("ur5_description")
         self.robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
-        default_cfg = np.array([0, -1.850, -1.425, -1.405, 1.593, -3.141])
+        default_cfg = np.array([4.722, -1.850, -1.425, -1.405, 1.593, -3.141])
         self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
-        self.target_link_name = "ee_link"
+        self.target_link_name = "wrist_3_link"
 
         self.world = World(self.robot, urdf, self.target_link_name) 
 
