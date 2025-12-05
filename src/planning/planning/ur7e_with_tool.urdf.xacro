@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="u7re_with_tool">
-  <xacro:arg name="tool_length_m" default="0.10" /> 
+  <xacro:include filename="$(find robotiq_hande_description)/urdf/robotiq_hande_gripper.xacro" />
 
   <xacro:arg name="original_xacro" default="$(find ur_description)/urdf/ur.urdf.xacro" />
   
@@ -17,12 +17,21 @@
     <xacro:arg name="sim_ignition" value="$(arg sim_ignition)"/>
     </xacro:include>
 
-  <link name="tool_ee_link"/>
+  <xacro:robotiq_hande_gripper
+    name="robotiq_hande_gripper"
+    prefix=""
+    parent="tool0"
+    grip_pos_min="0.0"
+    grip_pos_max="0.025"
+    tty_port="/tmp/ttyUR"
+    baudrate="115200"
+    parity="N"
+    data_bits="8"
+    stop_bit="1"
+    slave_id="9"
+    frequency_hz="10"
+    use_fake_hardware="false"
+  />
 
-  <joint name="tool_ee_joint" type="fixed">
-    <parent link="wrist_3_link"/>
-    <child link="tool_ee_link"/>
-    <origin xyz="0 0 -$(arg tool_length_m)" rpy="0 0 0"/>
-  </joint>
 
 </robot>

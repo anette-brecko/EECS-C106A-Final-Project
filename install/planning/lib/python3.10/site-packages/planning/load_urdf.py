@@ -14,6 +14,8 @@ def load_xacro_robot():
         tuple: (pk.Robot, pk.collision.RobotCollision, yourdfpy.URDF)
     """
     ur_desc_path = get_package_share_directory('ur_description')
+    robotiq_desc_path = get_package_share_directory('robotiq_hande_description')
+
     # xacro_path = os.path.join(ur_desc_path, 'urdf', 'ur.urdf.xacro')
     xacro_path = os.path.join('src', 'planning', 'planning', 'ur7e_with_tool.urdf.xacro')
 
@@ -41,7 +43,8 @@ def load_xacro_robot():
         f.write(urdf_string)
 
     try:
-        urdf_model = yourdfpy.URDF.load(temp_urdf_path, mesh_dir=ur_desc_path)
+        #urdf_model = yourdfpy.URDF.load(temp_urdf_path, mesh_dir=[ur_desc_path, robotiq_desc_path])
+        urdf_model = yourdfpy.URDF.load(temp_urdf_path)
     finally:
         # 6. Cleanup
         if os.path.exists(temp_urdf_path):
