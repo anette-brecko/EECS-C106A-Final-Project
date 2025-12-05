@@ -3,21 +3,25 @@ import xacro
 import yourdfpy
 import pyroki as pk
 import tempfile
-def load_xacro_robot(xacro_path: str):
+from ament_index_python.packages import get_package_share_directory 
+
+def load_xacro_robot():
     """
     Parses XACRO, loads it into yourdfpy, and creates PyROKI objects.
     
     Returns:
         tuple: (pk.Robot, pk.collision.RobotCollision, yourdfpy.URDF)
     """
+    ur_desc_path = get_package_share_directory('ur_description')
+    xacro_path = os.path.join(ur_desc_path, 'ur.urdf.xacro')
+
     if not os.path.exists(xacro_path):
         raise FileNotFoundError(f"XACRO file not found: {xacro_path}")
 
     mappings = {
-        'ur_type': 'ur5e',
+        'ur_type': 'ur7e',
         'name': 'ur',
-        #'tf_prefix':'',
-            }
+    }
     # 1. Process XACRO -> XML String
     try:
         doc = xacro.process_file(xacro_path, mappings=mappings)
