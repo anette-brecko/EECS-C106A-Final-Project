@@ -1,6 +1,7 @@
 [console_scripts]
 ik = planning.ik:main
 main = planning.main:main
+replay = planning.replay_test:main
 sim = planning.sim:main
 test = planning.test_launch:main
 tf = planning.static_tf_transform:main

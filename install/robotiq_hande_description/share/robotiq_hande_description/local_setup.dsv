@@ -1,2 +1,1 @@
-source;share/robotiq_hande_description/environment/ament_prefix_path.sh
-source;share/robotiq_hande_description/environment/path.sh
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/ament_cmake_environment_hooks/local_setup.dsv

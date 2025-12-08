@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<robot name="pedestal">
+
+  <!-- Pedestal Base Link (origin at UR7e base_link) -->
+  <link name="pedestal_base">
+    <visual>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="transparent">
+        <color rgba="0 0 0 0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- Rectangular Platform -->
+  <link name="platform">
+    <visual>
+      <geometry>
+        <!-- Platform extends in x direction, roughly 0.3m x 0.2m x 0.05m thick -->
+        <box size="0.35 0.25 0.05"/>
+      </geometry>
+      <material name="platform_gray">
+        <color rgba="0.6 0.6 0.6 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.35 0.25 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="10.0"/>
+      <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
+    </inertial>
+  </link>
+
+  <joint name="pedestal_to_platform" type="fixed">
+    <parent link="pedestal_base"/>
+    <child link="platform"/>
+    <!-- Platform sits at base_link height, slightly below (offset to sit on top of column) -->
+    <origin xyz="0.0 0.0 -0.025" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Cylindrical Column (Sawyer-style pedestal) -->
+  <link name="column">
+    <visual>
+      <geometry>
+        <!-- Sawyer pedestal: radius ~0.127m (5 inches), length 1.524m (60 inches) -->
+        <cylinder radius="0.127" length="1.524"/>
+      </geometry>
+      <material name="column_gray">
+        <color rgba="0.5 0.5 0.5 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.127" length="1.524"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="50.0"/>
+      <inertia ixx="10.0" ixy="0.0" ixz="0.0" iyy="10.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="platform_to_column" type="fixed">
+    <parent link="platform"/>
+    <child link="column"/>
+    <!-- Column center is at -0.787m (half of 1.524m below platform) -->
+    <origin xyz="0.0 0.0 -0.787" rpy="0 0 0"/>
+  </joint>
+
+</robot>

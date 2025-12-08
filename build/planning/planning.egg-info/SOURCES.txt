@@ -15,6 +15,7 @@ planning/ik.py
 planning/load_urdf.py
 planning/main.py
 planning/oneshot_gen_traj.py
+planning/replay_test.py
 planning/sim.py
 planning/static_tf_transform.py
 planning/test_launch.py
@@ -24,3 +25,8 @@ resource/planning
 test/test_copyright.py
 test/test_flake8.py
 test/test_pep257.py
+urdf/pedestal.DAE
+urdf/pedestal.urdf
+urdf/ur7e_with_gripper.urdf.xacro
+urdf/ur7e_with_pedestal_and_gripper.urdf.xacro
+urdf/ur7e_with_tool.urdf.xacro

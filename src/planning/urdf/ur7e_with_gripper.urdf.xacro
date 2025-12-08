@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur7e_with_pedestal_and_gripper">
+
+  <!-- Arguments for the UR robot -->
+  <xacro:arg name="ur_type" default="ur7e"/>
+  <xacro:arg name="name" default="ur"/>
+  <xacro:arg name="tf_prefix" default=""/>
+  <xacro:arg name="joint_limit_params" default="$(find ur_description)/config/ur7e/joint_limits.yaml"/>
+  <xacro:arg name="kinematics_params" default="$(find ur_description)/config/ur7e/default_kinematics.yaml"/>
+  <xacro:arg name="physical_params" default="$(find ur_description)/config/ur7e/physical_parameters.yaml"/>
+  <xacro:arg name="visual_params" default="$(find ur_description)/config/ur7e/visual_parameters.yaml"/>
+  <xacro:arg name="transmission_hw_interface" default=""/>
+  <xacro:arg name="safety_limits" default="false"/>
+  <xacro:arg name="safety_pos_margin" default="0.15"/>
+  <xacro:arg name="safety_k_position" default="20"/>
+  <xacro:arg name="use_fake_hardware" default="false"/>
+  <xacro:arg name="fake_sensor_commands" default="false"/>
+  <xacro:arg name="sim_gazebo" default="false"/>
+  <xacro:arg name="sim_ignition" default="false"/>
+  <xacro:arg name="headless_mode" default="false"/>
+  <xacro:arg name="initial_positions_file" default="$(find ur_description)/config/initial_positions.yaml"/>
+  <xacro:arg name="script_filename" default=""/>
+  <xacro:arg name="output_recipe_filename" default=""/>
+  <xacro:arg name="input_recipe_filename" default=""/>
+
+  <!-- Arguments for the Robotiq Hande gripper -->
+  <xacro:arg name="grip_pos_min" default="0"/>
+  <xacro:arg name="grip_pos_max" default="0.025"/>
+  <xacro:arg name="tty_port" default="/tmp/ttyUR"/>
+  <xacro:arg name="baudrate" default="115200"/>
+  <xacro:arg name="parity" default="N"/>
+  <xacro:arg name="data_bits" default="8"/>
+  <xacro:arg name="stop_bit" default="1"/>
+  <xacro:arg name="slave_id" default="9"/>
+  <xacro:arg name="frequency_hz" default="10"/>
+  <xacro:arg name="create_socat_tty" default="false"/>
+  <xacro:arg name="socat_ip_address" default="192.168.100.10"/>
+  <xacro:arg name="socat_port" default="54321"/>
+  <xacro:arg name="gripper_use_fake_hardware" default="true"/>
+
+  <!-- Include the UR robot macro -->
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+
+  <link name="world"/>
+
+  <!-- Instantiate the UR robot -->
+  <xacro:ur_robot
+    name="$(arg name)"
+    tf_prefix="$(arg tf_prefix)"
+    parent="world"
+    joint_limits_parameters_file="$(arg joint_limit_params)"
+    kinematics_parameters_file="$(arg kinematics_params)"
+    physical_parameters_file="$(arg physical_params)"
+    visual_parameters_file="$(arg visual_params)"
+    transmission_hw_interface="$(arg transmission_hw_interface)"
+    safety_limits="$(arg safety_limits)"
+    safety_pos_margin="$(arg safety_pos_margin)"
+    safety_k_position="$(arg safety_k_position)">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:ur_robot>
+
+  <!-- Include the Robotiq Hande gripper macro -->
+  <xacro:include filename="$(find robotiq_hande_description)/urdf/robotiq_hande_gripper.xacro"/>
+
+  <!-- Instantiate the Robotiq Hande gripper -->
+  <!-- Connected to wrist_3_link with the same transform as in ur5e_with_robotiq_hande_gripper.urdf -->
+  <!-- 1.57079632679 -->
+  <xacro:robotiq_hande_gripper
+    name="robotiq_hande_gripper"
+    prefix=""
+    parent="tool0"
+    xyz="0.0 0.0 0.0"
+    rpy="0.0 0.0 3.14159265358"
+    grip_pos_min="$(arg grip_pos_min)"
+    grip_pos_max="$(arg grip_pos_max)"
+    tty_port="$(arg tty_port)"
+    baudrate="$(arg baudrate)"
+    parity="$(arg parity)"
+    data_bits="$(arg data_bits)"
+    stop_bit="$(arg stop_bit)"
+    slave_id="$(arg slave_id)"
+    frequency_hz="$(arg frequency_hz)"
+    create_socat_tty="$(arg create_socat_tty)"
+    socat_ip_address="$(arg socat_ip_address)"
+    socat_port="$(arg socat_port)"
+    use_fake_hardware="$(arg gripper_use_fake_hardware)"
+  />
+
+</robot>
+

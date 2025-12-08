@@ -1,5 +1,1 @@
-
-std_msgs/Header header
-
-int64[] marker_ids
-geometry_msgs/Pose[] poses
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/src/ros2_aruco/ros2_aruco_interfaces/msg/ArucoMarkers.msg

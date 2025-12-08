@@ -11,6 +11,8 @@ from sensor_msgs.msg import JointState
 from tf2_ros import Buffer, TransformListener
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+from rclpy.utilities import remove_ros_args
+import sys
 
 from planning.ik import IKPlanner
 
@@ -33,7 +35,10 @@ class UR7e_TestLaunch(Node):
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
-        self.target_pose = np.array([0.3, -2.0, .7])
+        self.target_pose = np.array([0.3, 2.0, .7])
+
+        clean_args = remove_ros_args(args=sys.argv)
+        self.traj_save_filename = clean_args[1]
 
     def joint_state_callback(self, msg: JointState):
         if self.joint_state is not None:
@@ -55,7 +60,7 @@ class UR7e_TestLaunch(Node):
         
         # 5) Launch Ball
         self.get_logger().info("Computing trajectory")        
-        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5)
+        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 15, 1.5, self.traj_save_filename)
         self.job_queue.append((throwing_trajectory, t_release))
 
         # 6) Release the gripper

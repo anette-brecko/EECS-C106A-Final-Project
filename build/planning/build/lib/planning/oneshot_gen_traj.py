@@ -345,7 +345,7 @@ def solve_static_trajopt(
         v_norm = jnp.linalg.norm(v0) + 1e-6
         v_dir = v0 / v_norm
 
-        return ((jnp.cross(y_ee, v_dir)) * 40.0).flatten()
+        return ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
  
 
     factors.extend(
@@ -461,8 +461,8 @@ def generate_samples(
 
     def gen_orientation_sample(v_rel, x_rel):
         """Generates a random orientation for the end effector"""
-        # z-axis should be pointing in v_rel direction
-        y_axis = v_rel / onp.linalg.norm(v_rel)
+        # neg y-axis should be pointing in v_rel direction
+        y_axis = -v_rel / onp.linalg.norm(v_rel)
 
         # z-axis should be somewhat away from origin
         away = x_rel / onp.linalg.norm(x_rel)

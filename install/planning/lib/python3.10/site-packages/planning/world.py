@@ -26,7 +26,7 @@ class World:
         self.table_offset = np.array([0.0, 0.4, -0.18]) # As measured by center of the edge of the table
 
         # Floor parameters
-        self.min_height = -0.2 # Won't allow robot to go below this height
+        self.min_height = -0.6 # Won't allow robot to go below this height
 
         # Wall parameters
         self.wall_distance = -.7874 # in y direction (wall is behind robot)
@@ -155,10 +155,17 @@ class World:
         )
         playing = self.server.gui.add_checkbox("Playing", initial_value=True)
         execute = self.server.gui.add_button("Execute")
+        regenerate = self.server.gui.add_button("Regenerate")
 
-        while not execute.value:
+
+        while True:
             if playing.value:
                 slider.value = (slider.value + 1) % timesteps
+
+            if regenerate.value:
+                return "regenerate"
+            elif execute.value:
+                return False
             
             # Update robot
             self.urdf_vis.update_cfg(robot_traj[slider.value])
@@ -223,7 +230,7 @@ class World:
         # TODO: Monitor
         
 
-        return ground_coll, pillar_coll#, table_coll
+        return ground_coll, table_coll
 
     
     def _ball_trajectory(self, traj, time_release, dt) -> Callable[[float], np.ndarray]:

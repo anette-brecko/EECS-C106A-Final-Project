@@ -1,8 +1,1 @@
-setup.py
-ros2_aruco_interfaces/__init__.py
-ros2_aruco_interfaces.egg-info/PKG-INFO
-ros2_aruco_interfaces.egg-info/SOURCES.txt
-ros2_aruco_interfaces.egg-info/dependency_links.txt
-ros2_aruco_interfaces.egg-info/top_level.txt
-ros2_aruco_interfaces/msg/__init__.py
-ros2_aruco_interfaces/msg/_aruco_markers.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/ament_cmake_python/ros2_aruco_interfaces/ros2_aruco_interfaces.egg-info/SOURCES.txt
