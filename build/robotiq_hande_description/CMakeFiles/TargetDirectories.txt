@@ -1,9 +1,0 @@
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/uninstall.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/robotiq_hande_description_uninstall.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/test.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/edit_cache.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/rebuild_cache.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/list_install_components.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/install.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/install/local.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/robotiq_hande_description/CMakeFiles/install/strip.dir

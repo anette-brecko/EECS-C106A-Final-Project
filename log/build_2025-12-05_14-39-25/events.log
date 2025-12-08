@@ -1,6 +1,0 @@
-[0.000000] (-) TimerEvent: {}
-[0.000113] (-) JobUnselected: {'identifier': 'perception'}
-[0.000137] (-) JobUnselected: {'identifier': 'planning'}
-[0.000154] (-) JobUnselected: {'identifier': 'ros2_aruco'}
-[0.000169] (-) JobUnselected: {'identifier': 'ros2_aruco_interfaces'}
-[0.000185] (-) EventReactorShutdown: {}
