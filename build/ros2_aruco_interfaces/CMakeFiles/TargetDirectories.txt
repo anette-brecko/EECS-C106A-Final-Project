@@ -9,7 +9,7 @@
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ros2_aruco_interfaces__rosidl_typesupport_c.dir
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ros2_aruco_interfaces__rosidl_typesupport_introspection_cpp.dir
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ros2_aruco_interfaces__rosidl_typesupport_cpp.dir
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ament_cmake_python_symlink_ros2_aruco_interfaces.dir
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ament_cmake_python_copy_ros2_aruco_interfaces.dir
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ament_cmake_python_build_ros2_aruco_interfaces_egg.dir
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ros2_aruco_interfaces__rosidl_generator_py.dir
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/CMakeFiles/ros2_aruco_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir

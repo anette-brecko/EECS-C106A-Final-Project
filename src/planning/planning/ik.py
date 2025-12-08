@@ -16,9 +16,9 @@ import pyroki as pk
 
 from robot_descriptions.loaders.yourdfpy import load_robot_description
 
-from .oneshot_gen_traj import solve_static_trajopt
-from .oneshot_gen_traj import compute_ee_spatial_jacobian
-from .oneshot_gen_traj import solve_single_ik_with_collision
+from .trajectory_generation.gen_traj import solve_static_trajopt
+from .trajectory_generation.jacobian import compute_ee_spatial_jacobian
+from .trajectory_generation.solve_ik import solve_single_ik_with_collision
 
 from .world import World
 from .load_urdf import load_xacro_robot
@@ -152,10 +152,25 @@ class IKPlanner(Node):
 
     def _solve_to_target(self, start_cfg, target_pos, timesteps, dt):
         """ Solve the trajectory problem """
-        traj, t_rel, t_target = solve_static_trajopt(
+        world_coll = self.world.gen_world_coll()
+        samples = generate_samples(
+            self.robot, 
+            self.robot_coll,
+            world_coll,
+            self.target_link_name,
+            start_cfg, 
+            target_pos, 
+            timesteps,
+            dt,
+            9.81,
+            7,
+            0.85*0.8,
+            100
+        )
+        return solve_static_trajopt(
             self.robot,
             self.robot_coll,
-            self.world.gen_world_coll(),
+            world_coll,
             self.target_link_name,
             start_cfg,
             target_pos,
@@ -164,8 +179,7 @@ class IKPlanner(Node):
             0.85 * 0.8, # TODO: MAX REACH! Make parameter
             7 # TODO: MAX VEL! Make parameter
         )
-        return np.ndarray(traj), float(t_rel), float(t_target)
-
+    
     def _trajectory_points_to_msg(self, traj_points, dt) -> JointTrajectory:
         """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
         
@@ -221,12 +235,13 @@ class IKPlanner(Node):
 
             # Check if we need to solve again
             if "regenerate" == status: 
+                print("STARTING AGAIN!")
                 continue
 
             if filename:
                 self._save_trajectory(
                     filename,
-                    start_joint_state,
+                    start_cfg,
                     target_pos,
                     traj,
                     t_release,
@@ -292,7 +307,7 @@ class IKPlanner(Node):
         if not os.path.exists(filename):
             raise FileNotFoundError(f"Trajectory file not found: {filename}")
         
-        data = np.load(filename)
+        data = np.load(filename, allow_pickle=True)
 
         # Extract data with safety checks
         return data['start_cfg'], data['target_pos'], data['trajectory'], float(data['t_release']), float(data['t_target']), int(data['timesteps']), float(data['dt'])

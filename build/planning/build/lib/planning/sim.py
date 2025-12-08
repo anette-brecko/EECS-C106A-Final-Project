@@ -11,7 +11,7 @@ from .world import World
 import numpy as np
 import pyroki as pk
 from robot_descriptions.loaders.yourdfpy import load_robot_description
-from .oneshot_gen_traj import solve_static_trajopt
+from .trajector_generation.gen_traj import solve_static_trajopt
 import tyro
 from .load_urdf import load_xacro_robot
 def main():

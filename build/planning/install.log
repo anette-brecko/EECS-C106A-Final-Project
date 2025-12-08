@@ -1,7 +1,6 @@
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__init__.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/ik.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/main.py
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/oneshot_gen_traj.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/sim.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/static_tf_transform.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/test_launch.py
@@ -9,10 +8,15 @@
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/load_urdf.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/world.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/replay_test.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/solve_ik.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/generate_samples.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/load_from_distance.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__init__.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/gen_traj.py
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/jacobian.py
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/__init__.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/ik.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/main.cpython-310.pyc
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/oneshot_gen_traj.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/sim.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/static_tf_transform.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/test_launch.cpython-310.pyc
@@ -20,6 +24,12 @@
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/load_urdf.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/world.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/__pycache__/replay_test.cpython-310.pyc
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__pycache__/solve_ik.cpython-310.pyc
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__pycache__/generate_samples.cpython-310.pyc
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__pycache__/load_from_distance.cpython-310.pyc
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__pycache__/__init__.cpython-310.pyc
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__pycache__/gen_traj.cpython-310.pyc
+/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/lib/python3.10/site-packages/planning/trajectory_generation/__pycache__/jacobian.cpython-310.pyc
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/ament_index/resource_index/packages/planning
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/package.xml
 /home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/install/planning/share/planning/launch/test_bringup.launch.py

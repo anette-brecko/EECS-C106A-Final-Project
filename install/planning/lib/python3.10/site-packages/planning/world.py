@@ -9,7 +9,7 @@ from viser.extras import ViserUrdf
 import time
 from typing import Callable
 
-from .oneshot_gen_traj import compute_ee_spatial_jacobian
+from .trajectory_generation.gen_traj import compute_ee_spatial_jacobian
 
 class World:
     def __init__(self, robot, urdf, target_link_name):
@@ -32,7 +32,7 @@ class World:
         self.wall_distance = -.7874 # in y direction (wall is behind robot)
 
         # Pillar parameters
-        self.pillar_length = 0.23
+        self.pillar_length = 0.28
         self.pillar_height = 0.91
         self.visualize_world()
         self._visualize_joints(np.array(robot.joint_var_cls.default_factory()))
@@ -163,6 +163,7 @@ class World:
                 slider.value = (slider.value + 1) % timesteps
 
             if regenerate.value:
+                regenerate.value = False
                 return "regenerate"
             elif execute.value:
                 return False
@@ -184,7 +185,7 @@ class World:
 
     def _joints_to_pos_wxyz(self, q):
         """Takes joint positions and return position and orientation (wxyz)"""
-        pos = self.robot.forward_kinematics(q)
+        pos = self.robot.forward_kinematics(jnp.array(q))
         twist = np.array(jnp.take(pos, self.robot.links.names.index(self.target_link_name), axis=-2))
         return twist[..., 4:], twist[..., :4]
 

@@ -171,7 +171,7 @@ class UR7e_ReplayTestLaunch(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = UR7e_TestLaunch()
+    node = UR7e_ReplayTestLaunch()
     rclpy.spin(node)
     node.destroy_node()
 

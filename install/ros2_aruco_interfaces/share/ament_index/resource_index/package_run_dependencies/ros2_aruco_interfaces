@@ -1,1 +1,1 @@
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/ros2_aruco_interfaces
+geometry_msgs;std_msgs;rosidl_default_runtime;ament_lint_auto;ament_lint_common

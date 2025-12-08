@@ -1,1 +1,1 @@
-/home/cc/ee106a/fa25/class/ee106a-adc/EECS-C106A-Final-Project/build/ros2_aruco_interfaces/rosidl_generator_py/ros2_aruco_interfaces/msg/__init__.py
+from ros2_aruco_interfaces.msg._aruco_markers import ArucoMarkers  # noqa: F401
