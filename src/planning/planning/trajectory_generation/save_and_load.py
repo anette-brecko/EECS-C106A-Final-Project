@@ -1,6 +1,24 @@
 import os
 import numpy as np
 import jaxls
+import jax.numpy as jnp
+from jax import Array
+
+# --- 1. Define Factory Functions (Top Level) ---
+def _default_time():
+    return jnp.array([1.0])
+
+def _default_start_cfg():
+    return jnp.zeros(6)
+
+def _default_target_pos():
+    return jnp.zeros(3)
+
+# --- 2. Define Classes using Named Functions ---
+# By using named functions, dill can save these classes by reference.
+class TimeVar(jaxls.Var[Array], default_factory=_default_time): ...
+class StartConfigVar(jaxls.Var[Array], default_factory=_default_start_cfg): ...
+class TargetPosVar(jaxls.Var[Array], default_factory=_default_target_pos): ...
 
 def save_trajectory(
             filename: str, 
@@ -40,9 +58,6 @@ def save_problem(
     filename: str | os.PathLike
 ):
     import dill
-    import dill.settings
-
-    dill.settings['recurse'] = True
     # Generate hash for filename
     if not filename:
         raise ValueError("filename must be specified")

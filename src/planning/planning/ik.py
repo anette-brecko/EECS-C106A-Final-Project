@@ -6,22 +6,15 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
+
 import sys
-
-from typing import Callable
-
 import numpy as np
-import jax.numpy as jnp
 import pyroki as pk
 
-from robot_descriptions.loaders.yourdfpy import load_robot_description
-
 from .trajectory_generation.generate_samples import solve_by_sampling
-
 from .world import World
 from .load_urdf import load_ur7e_with_gripper
 from .trajectory_generation.save_and_load import save_trajectory, load_trajectory
-import os
 
 
 # Example usage:

@@ -12,7 +12,7 @@ from .jacobian import compute_ee_spatial_jacobian
 
 import os
 
-from .save_and_load import save_problem, load_problem
+from .save_and_load import save_problem, load_problem, TimeVar, StartConfigVar, TargetPosVar
 
 
 # import os
@@ -20,12 +20,6 @@ from .save_and_load import save_problem, load_problem
 # jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
 # jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
 #jax.config.update("jax_explain_cache_misses", True)
-
-
-class TimeVar(jaxls.Var[Array], default_factory=lambda: jnp.array([1.0])): ...
-class StartConfigVar(jaxls.Var[Array], default_factory=lambda: jnp.zeros(6)): ...
-class TargetPosVar(jaxls.Var[Array], default_factory=lambda: jnp.zeros(3)): ...
-
 def _param_to_var_vals(
     robot: pk.Robot,
     start_cfg: ArrayLike,
@@ -117,7 +111,6 @@ def analyze_problem(
 ):
     cache_dir = os.path.expanduser(cache_dir)
     filename = os.path.join(cache_dir, f"dt_{dt:.6f}_timesteps_{timesteps}.pkl")
-    filename = os.path.join(cache_dir, "test.pkl")
     
     try:
         return load_problem(filename)
