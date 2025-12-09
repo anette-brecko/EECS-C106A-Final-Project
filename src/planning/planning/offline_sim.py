@@ -13,6 +13,7 @@ import tyro
 import os
 from robot_descriptions.loaders.yourdfpy import load_robot_description
 
+
 def main():
     # Initialize robot
     urdf = load_robot_description("ur5_description")
@@ -33,7 +34,9 @@ def main():
     timesteps = 40
     dt = time_horizon / timesteps
 
-    traj, t_release, t_target = solve_by_sampling(
+    
+    while True:
+        traj, t_release, t_target = solve_by_sampling(
             robot,
             robot_coll,
             world.gen_world_coll(),
@@ -47,9 +50,20 @@ def main():
             cache_dir=os.path.join('/Users/jhaertel/code/catchv22/src/planning', 'saved_problems'),
             num_samples=50,
         )
-    
-    # Visualize!
-    world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
+        status = world.visualize_all(
+                start_cfg, 
+                target_pos, 
+                traj, 
+                t_release, 
+                t_target, 
+                timesteps, 
+                dt
+            )
+
+        # Check if we need to solve again
+        if "regenerate" == status: 
+            print("STARTING AGAIN!")
+            continue
 
     
 if __name__ == "__main__":

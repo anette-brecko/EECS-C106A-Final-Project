@@ -43,7 +43,7 @@ class World:
         self.visualize_tf(start_cfg, target_pos)
         self.visualize_ball_trajectory(ball_traj, t_release, t_target, 0.2, 30)
         self.visualize_ee_waypoints(traj)
-        self.animate(ball_traj, traj, t_release, t_target, timesteps, dt)
+        self.animate(ball_traj, traj, t_release, timesteps, dt)
 
     def visualize_world(self):
         self.server.scene.add_grid("/grid", width=2, height=2, cell_size=0.1)
@@ -134,7 +134,7 @@ class World:
             colors=(0, 0, 255)
         )
         
-    def animate(self, ball_traj, robot_traj, t_release, t_target,  timesteps, dt):
+    def animate(self, ball_traj, robot_traj, t_release, timesteps, dt):
         ee_axis = self.server.scene.add_frame(
             "/ee",
             position=np.zeros(3),
@@ -153,6 +153,7 @@ class World:
         slider = self.server.gui.add_slider(
             "Timestep", min=0, max=timesteps - 1, step=1, initial_value=0
         )
+        self.server.gui.reset()
         playing = self.server.gui.add_checkbox("Playing", initial_value=True)
         execute = self.server.gui.add_button("Execute")
         regenerate = self.server.gui.add_button("Regenerate")
@@ -228,10 +229,7 @@ class World:
             height=np.full((translation.shape[0], 1), self.table_length),
         )
 
-        # TODO: Monitor
-        
-
-        return ground_coll, table_coll
+        return ground_coll, table_coll, pillar_coll
 
     
     def _ball_trajectory(self, traj, time_release, dt) -> Callable[[float], np.ndarray]:

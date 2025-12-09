@@ -13,7 +13,7 @@ from .jacobian import compute_ee_spatial_jacobian
 import os
 
 from .save_and_load import save_problem, load_problem, TimeVar, StartConfigVar, TargetPosVar
-
+from pyroki._robot import JointVar
 
 # import os
 # jax.config.update("jax_logging_level", "WARNING")
@@ -111,7 +111,6 @@ def analyze_problem(
 ):
     cache_dir = os.path.expanduser(cache_dir)
     filename = os.path.join(cache_dir, f"dt_{dt:.6f}_timesteps_{timesteps}.pkl")
-    
     try:
         return load_problem(filename)
     except Exception as e:

@@ -3,7 +3,8 @@ import numpy as np
 import jaxls
 import jax.numpy as jnp
 from jax import Array
-
+import contextlib
+import dataclasses
 # --- 1. Define Factory Functions (Top Level) ---
 def _default_time():
     return jnp.array([1.0])
@@ -15,7 +16,7 @@ def _default_target_pos():
     return jnp.zeros(3)
 
 # --- 2. Define Classes using Named Functions ---
-# By using named functions, dill can save these classes by reference.
+# By using named functions, cloudpickle can save these classes by reference.
 class TimeVar(jaxls.Var[Array], default_factory=_default_time): ...
 class StartConfigVar(jaxls.Var[Array], default_factory=_default_start_cfg): ...
 class TargetPosVar(jaxls.Var[Array], default_factory=_default_target_pos): ...
@@ -57,7 +58,7 @@ def save_problem(
     problem: jaxls.AnalyzedLeastSquaresProblem,
     filename: str | os.PathLike
 ):
-    import dill
+    import cloudpickle
     # Generate hash for filename
     if not filename:
         raise ValueError("filename must be specified")
@@ -69,19 +70,78 @@ def save_problem(
     print(f"[IO] Saving problem to {filename}") 
     
     with open(filename, "wb") as file_handle:
-        dill.dump(problem, file_handle)
+        cloudpickle.dump(problem, file_handle)
 
-def load_problem(
-    filename: str | os.PathLike
-):
-    import dill
-
-    # Make sure filename exists
+def load_problem(filename):
+    import cloudpickle
+    import jaxls
+    import dataclasses
+    
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File not found: {filename}")
     
-    with open(filename, "rb") as file_handle:
-        return dill.load(file_handle)
+    try:
+        with _jaxls_loading_patch(), open(filename, "rb") as f:
+            result = cloudpickle.load(f)
+        return result
+    finally:
+        # Restore originals
+        jaxls.Var.__init_subclass__ = original_init_subclass
+        dataclasses.dataclass = original_dataclass
+
+def save_robot(robot, filename: str):
+    """Saves the robot instance using cloudpickle."""
+    import cloudpickle
+    # Make sure filepath exists
+    os.makedirs(os.path.dirname(os.path.abspath(filename)), exist_ok=True)
+    
+    print(f"[IO] Saving robot to {filename}")
+    with open(filename, "wb") as f:
+        cloudpickle.dump(robot, f)
+
+def load_problem(filename):
+    import os
+    import cloudpickle
+    import jaxls
+    import dataclasses
+
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"File not found: {filename}")
+
+    # --- 1. SETUP: Capture original values safely ---
+    raw_attr = jaxls.Var.__init_subclass__
+    # This handles both bound methods and plain functions to avoid AttributeError
+    original_init_subclass = getattr(raw_attr, "__func__", raw_attr)
+    
+    original_dataclass = dataclasses.dataclass
+
+    # --- 2. PATCH: Define the temporary replacements ---
+    @classmethod  
+    def patched_init_subclass(cls, default=None, default_factory=None, **kwargs):
+        if default is None and default_factory is None:
+            default = 0.0 
+        original_init_subclass(cls, default=default, default_factory=default_factory, **kwargs)
+
+    def patched_dataclass(cls=None, **kwargs):
+        def wrap(cls):
+            if hasattr(cls, '__setattr__') and issubclass(cls, jaxls.Var):
+                return cls
+            return original_dataclass(cls, **kwargs)
+        if cls is None: return wrap
+        return wrap(cls)
+
+    # --- 3. APPLY & LOAD ---
+    jaxls.Var.__init_subclass__ = patched_init_subclass
+    dataclasses.dataclass = patched_dataclass
+
+    try:
+        print(f"[IO] Loading problem from {filename}")
+        with open(filename, "rb") as f:
+            return cloudpickle.load(f)
+    finally:
+        # --- 4. CLEANUP: Restore originals ---
+        jaxls.Var.__init_subclass__ = original_init_subclass
+        dataclasses.dataclass = original_dataclass
 
 if __name__ == "__main__":
     import jax
