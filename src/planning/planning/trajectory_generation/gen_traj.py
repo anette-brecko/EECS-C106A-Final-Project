@@ -1,28 +1,53 @@
-from typing import Sequence
+from typing import Sequence, Callable
 
 import jax
 import jax.numpy as jnp
-import jax_dataclasses as jdc
 import jaxlie
 import jaxls
 import numpy as onp
 import pyroki as pk
 from jax import Array
 from jax.typing import ArrayLike 
+from .jacobian import compute_ee_spatial_jacobian
+
+import os
+
+from .save_and_load import save_problem, load_problem
+
+
 # import os
 # jax.config.update("jax_logging_level", "WARNING")
 # jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
 # jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
 #jax.config.update("jax_explain_cache_misses", True)
 
-from .jacobian import compute_ee_spatial_jacobian
-from .generate_samples import generate_samples
 
+class TimeVar(jaxls.Var[Array], default_factory=lambda: jnp.array([1.0])): ...
+class StartConfigVar(jaxls.Var[Array], default_factory=lambda: jnp.zeros(6)): ...
+class TargetPosVar(jaxls.Var[Array], default_factory=lambda: jnp.zeros(3)): ...
 
-class TimeVar(
-    jaxls.Var[Array],
-    default_factory=lambda: jnp.array([1.0]),  # Start with a factor of 1.0
-): ...
+def _param_to_var_vals(
+    robot: pk.Robot,
+    start_cfg: ArrayLike,
+    target_position: ArrayLike,
+    timesteps: int,
+    traj: onp.ndarray,
+    t_release: float,
+    t_target: float
+) -> jaxls.VarValues:
+    traj_vars = robot.joint_var_cls(jnp.arange(timesteps))
+    time_release_var = TimeVar(0)
+    time_target_var = TimeVar(1)
+    start_var = StartConfigVar(0)
+    target_pos_var = TargetPosVar(0)
+
+    return jaxls.VarValues.make((
+        traj_vars.with_value(jnp.array(traj)), 
+        time_release_var.with_value(jnp.array([t_release])), 
+        time_target_var.with_value(jnp.array([t_target])),
+        start_var.with_value(jnp.array(start_cfg)),
+        target_pos_var.with_value(jnp.array(target_position))
+    ))
 
 def solve_static_trajopt(
     robot: pk.Robot,
@@ -33,24 +58,95 @@ def solve_static_trajopt(
     target_position: ArrayLike,
     timesteps: int,
     dt: float,
-    initial_trajectories: list[jnp.ndarray],
+    initial_trajectories: list[tuple[onp.ndarray, float, float]],
     g: float = 9.81,
-
+    cache_dir: str | os.PathLike = "/tmp",
 ) -> tuple[onp.ndarray, float, float]:
-    if not isinstance(start_cfg, onp.ndarray) and not isinstance(start_cfg, jnp.ndarray):
-        raise ValueError(f"Invalid type for `ArrayLike`: {type(start_cfg)}")
+    traj_vars = robot.joint_var_cls(jnp.arange(timesteps))
+    time_release_var = TimeVar(0)
+    time_target_var = TimeVar(1)
 
+    problem = analyze_problem(robot, robot_coll, world_coll, target_link_name, timesteps, dt, g, cache_dir) 
+    sample_to_var_vals = lambda sample: _param_to_var_vals(robot, start_cfg, target_position, timesteps, sample[0], sample[1], sample[2])
+    samples_var_vals = [sample_to_var_vals(sample) for sample in initial_trajectories]
+
+    def solve_trajectory(sample):
+        solution = problem.solve(
+               initial_vals=sample
+            )
+        return solution[traj_vars], solution[time_release_var], solution[time_target_var]
+
+    if len(initial_trajectories) == 0:
+        traj, t_release, t_target = solve_trajectory(samples_var_vals[0])
+    else:
+        __cost = _cost(problem)
+        cost = lambda sample: __cost(sample_to_var_vals(sample))
+        traj, t_release, t_target = min([solve_trajectory(sample) for sample in samples_var_vals], key=cost)
+
+    return onp.array(traj), t_release.item(), t_target.item()
+
+def _cost(problem: jaxls.AnalyzedLeastSquaresProblem) -> Callable[..., float]:
+    def cost(sample: jaxls.VarValues) -> float:
+        residual = problem.compute_residual_vector(sample)
+        residual = jnp.array(residual)
+        return jnp.dot(residual, residual).item()
+    return cost
+
+def choose_best_samples(
+    samples: list[tuple[onp.ndarray, float, float]],
+    num_samples_selected: int,
+    robot: pk.Robot,
+    problem: jaxls.AnalyzedLeastSquaresProblem,
+    start_cfg: ArrayLike,
+    target_position: ArrayLike,
+    timesteps: int
+) -> list[tuple[onp.ndarray, float, float]]:
+    sample_to_var_vals = lambda sample: _param_to_var_vals(robot, start_cfg, target_position, timesteps, sample[0], sample[1], sample[2])
+    cost = _cost(problem)
+    return sorted(samples, key=lambda sample: cost(sample_to_var_vals(sample)))[:num_samples_selected]
+
+def analyze_problem(
+    robot: pk.Robot,
+    robot_coll: pk.collision.RobotCollision,
+    world_coll: Sequence[pk.collision.CollGeom],
+    target_link_name: str,
+    timesteps: int,
+    dt: float,
+    g: float = 9.81,
+    cache_dir: str | os.PathLike = "/tmp"
+):
+    cache_dir = os.path.expanduser(cache_dir)
+    filename = os.path.join(cache_dir, f"dt_{dt:.6f}_timesteps_{timesteps}.pkl")
+    filename = os.path.join(cache_dir, "test.pkl")
+    
+    try:
+        return load_problem(filename)
+    except Exception as e:
+        print(f"Could not load problem from {filename}. Generating from scratch.")
+        problem = _analyze_problem(robot, robot_coll, world_coll, target_link_name, timesteps, dt, g)
+        save_problem(problem, filename)
+        raise e
+        return problem
+
+def _analyze_problem(
+    robot: pk.Robot,
+    robot_coll: pk.collision.RobotCollision,
+    world_coll: Sequence[pk.collision.CollGeom],
+    target_link_name: str,
+    timesteps: int,
+    dt: float,
+    g: float = 9.81
+): 
     target_link_index = robot.links.names.index(target_link_name)
 
     traj_vars = robot.joint_var_cls(jnp.arange(timesteps))
-    time_release = TimeVar(jnp.array([0])) #TimeVar(0)   
-    time_target = TimeVar(jnp.array([1]))
+    time_release_var = TimeVar(0)     
+    time_target_var = TimeVar(1)
+    start_var = StartConfigVar(0)
+    target_pos_var = TargetPosVar(0)
 
-    robot_unbatched = robot
-    robot_coll_unbatched = robot_coll
-    
-    robot = jax.tree.map(lambda x: x[None], robot)  # Add batch dimension.
-    robot_coll = jax.tree.map(lambda x: x[None], robot_coll)  # Add batch dimension.
+    robot_batched = jax.tree.map(lambda x: x[None], robot)
+    robot_coll_batched = jax.tree.map(lambda x: x[None], robot_coll)
 
     # Basic regularization / limit costs.
     factors: list[jaxls.Cost] = [
@@ -60,12 +156,12 @@ def solve_static_trajopt(
             jnp.array([0.0001])[None],
         ),
         pk.costs.limit_cost(
-            robot,
+            robot_batched,
             traj_vars,
             jnp.array([100.0])[None],
         ),
         pk.costs.manipulability_cost(
-            robot,
+            robot_batched,
             traj_vars,
             jnp.array([target_link_index]),
             jnp.array([1.0 / timesteps])[None]
@@ -90,29 +186,30 @@ def solve_static_trajopt(
         colldist = pk.collision.colldist_from_sdf(dist, 0.1)
         return (colldist * 20.0).flatten()
 
-    # for world_coll_obj in world_coll:
-    #     factors.append(
-    #         jaxls.Cost(
-    #             compute_world_coll_residual,
-    #             (
-    #                 robot,
-    #                 robot_coll,
-    #                 jax.tree.map(lambda x: x[None], world_coll_obj),
-    #                 robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-    #                 robot.joint_var_cls(jnp.arange(1, timesteps)),
-    #             ),
-    #             name="World Collision (sweep)",
-    #         )
-    #     )
+    for world_coll_obj in world_coll:
+        factors.append(
+            jaxls.Cost(
+                compute_world_coll_residual,
+                (
+                    robot_batched,
+                    robot_coll_batched,
+                    jax.tree.map(lambda x: x[None], world_coll_obj),
+                    robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
+                    robot.joint_var_cls(jnp.arange(1, timesteps)),
+                ),
+                name="World Collision (sweep)",
+            )
+        )
 
-    # factors.append(
-    #     pk.costs.self_collision_cost(
-    #         robot,
-    #         robot_coll, traj_vars,
-    #         0.005,
-    #         2000.0 / timesteps,
-    #     )
-    # )
+    factors.append(
+        pk.costs.self_collision_cost(
+            robot_batched,
+            robot_coll_batched,
+            traj_vars,
+            0.005,
+            2000.0 / timesteps,
+        )
+    )
 
     @jaxls.Cost.create_factory(name="terminal_velocity_limit_cost")
     def terminal_velocity_limit_cost(
@@ -122,6 +219,7 @@ def solve_static_trajopt(
         var_t_minus_2: jaxls.Var[Array],
         var_t_minus_3: jaxls.Var[Array],
         var_t_minus_4: jaxls.Var[Array],
+        dt: float,
     ) -> Array:
         """Computes the residual penalizing velocity limit violations (5-point stencil)."""
         q_t   = vals[var_t]
@@ -133,22 +231,23 @@ def solve_static_trajopt(
         velocity = (25 * q_t - 48 * q_tm1 + 36 * q_tm2 - 16 * q_tm3 + 3 * q_tm4) / (12 * dt)
         return (velocity * 20.0).flatten()
     
-    # Start / end velocity constraints.
+    # Start / end velocity constraints
+    @jaxls.Cost.create_factory(name="start_pose_constraint")
+    def start_pose_cost(vals: jaxls.VarValues, var: jaxls.Var, s_var: StartConfigVar):
+        s_val_fixed = jax.lax.stop_gradient(vals[s_var])
+        return ((vals[var] - s_val_fixed) * 200.0).flatten()
+
     factors.extend(
         [
-            jaxls.Cost(
-                lambda vals, var: ((vals[var] - start_cfg) * 200.0).flatten(),
-                (robot.joint_var_cls(jnp.arange(0, 2)),),
-                name="start_pose_constraint",
-            ),
+            start_pose_cost(robot.joint_var_cls(jnp.arange(0, 2)), start_var),
             terminal_velocity_limit_cost(
                 robot.joint_var_cls(jnp.arange(timesteps-6, timesteps)),
                 robot.joint_var_cls(jnp.arange(timesteps-7, timesteps - 1)),
                 robot.joint_var_cls(jnp.arange(timesteps-8, timesteps - 2)),
                 robot.joint_var_cls(jnp.arange(timesteps-9, timesteps - 3)),
                 robot.joint_var_cls(jnp.arange(timesteps-10, timesteps - 4)),
+                dt
             ),
-
         ]
     )
 
@@ -161,7 +260,7 @@ def solve_static_trajopt(
                 jnp.array([2.5 / timesteps])[None],
             ),
             pk.costs.five_point_velocity_cost(
-                robot,
+                robot_batched,
                 robot.joint_var_cls(jnp.arange(4, timesteps)),
                 robot.joint_var_cls(jnp.arange(3, timesteps - 1)),
                 robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
@@ -176,7 +275,7 @@ def solve_static_trajopt(
                 robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
                 robot.joint_var_cls(jnp.arange(0, timesteps - 4)),
                 dt,
-                jnp.array([2.0 / timesteps])[None],
+                jnp.array([4.0 / timesteps])[None],
             ),
             pk.costs.five_point_jerk_cost(
                 robot.joint_var_cls(jnp.arange(6, timesteps)),
@@ -199,8 +298,10 @@ def solve_static_trajopt(
         traj_vars_tuple: tuple[jaxls.Var[jax.Array], ...],
         time_release: TimeVar,
         time_target: TimeVar,
+        target_pos_v: TargetPosVar,
     ):
-        t_rel = vals[time_release]
+        t_rel = vals[time_release].squeeze()
+        target_pos = jax.lax.stop_gradient(vals[target_pos_v])
         
         idx_float = t_rel / dt
         
@@ -224,6 +325,7 @@ def solve_static_trajopt(
 
         # --- 3. Interpolate Position (Still Linear) ---
         q_release = (1.0 - alpha) * q_curr + alpha * q_next
+        q_release = q_release.reshape(-1)
 
         # --- 4. Interpolate Central Difference Velocity ---
         # Velocity at q_curr (t_floor) using central difference: (q_next - q_prev) / 2*dt
@@ -234,6 +336,7 @@ def solve_static_trajopt(
 
         # Linear interpolation of the two velocity estimates
         q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
+        q_dot_release = q_dot_release.reshape(-1)
 
         # Get starting position of launch
         q = robot.forward_kinematics(q_release)
@@ -245,7 +348,7 @@ def solve_static_trajopt(
         v0 = twist[:3][None]
 
         # Time duration of flight
-        delta_t = vals[time_target] - t_rel
+        delta_t = vals[time_target].squeeze() - t_rel
         
         # Projectile motion: x(t) = x0 + v0*t + 0.5*g*t^2
         gravity_vec = jnp.array([0.0, 0.0, -g]) 
@@ -254,8 +357,7 @@ def solve_static_trajopt(
         
         # Target position (passed from outside, you might need to add it to args or closure)
         # For now assuming target_position is available in closure as `target_position`
-        target_pos_arr = jnp.array(target_position)
-        return ((pred_pos - target_pos_arr) * 300.0).flatten()
+        return ((pred_pos - target_pos) * 300.0).flatten()
         
     @jaxls.Cost.create_factory(name="positive_time_cost")
     def positive_time_cost(
@@ -299,7 +401,7 @@ def solve_static_trajopt(
         time_release: TimeVar,
     ):
         """Want the z-axis to lie tangent to launch trajectory for smooth flight."""
-        t_rel = vals[time_release]
+        t_rel = vals[time_release].squeeze()
         
         idx_float = t_rel / dt
         
@@ -350,41 +452,22 @@ def solve_static_trajopt(
         return ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
  
 
-    # factors.extend(
-    #     [
-    #         positive_time_cost(time_release, time_target),
-    #         toss_target_cost(robot, tuple(traj_vars[i] for i in range(timesteps)), time_release, time_target),
-    #         toss_alignment_cost(robot, tuple(traj_vars[i] for i in range(timesteps)), time_release)
-    #     ]
-    # )
+    factors.extend(
+        [
+            positive_time_cost(time_release_var, time_target_var),
+            toss_target_cost(
+                robot, 
+                tuple(traj_vars[i] for i in range(timesteps)), 
+                time_release_var, 
+                time_target_var, 
+                target_pos_var
+            ),
+            toss_alignment_cost(
+                robot, 
+                tuple(traj_vars[i] for i in range(timesteps)), 
+                time_release_var
+            )
+        ]
+    ) 
    
-    # print(f'Generating {num_samples} samples')
-
-
-    problem = jaxls.LeastSquaresProblem(factors, [traj_vars, time_release, time_target]).analyze()
-    
-    def cost(sample):
-        vals = jaxls.VarValues.make((traj_vars.with_value(sample[0]),
-                                     time_release.with_value(jnp.array([sample[1]])),
-                                    time_target.with_value(jnp.array([sample[2]]))))
-        residual = problem.compute_residual_vector(vals)
-        return jnp.dot(residual, residual)
-
-    def refine_trajectories(sample):
-       init_traj, init_t_rel, init_t_target = sample
-       solution = (
-           problem
-           .solve(
-               initial_vals=
-               jaxls.VarValues.make((traj_vars.with_value(init_traj), 
-                                     time_release.with_value(jnp.array([init_t_rel])), 
-                                     time_target.with_value(jnp.array([init_t_target])))),
-           )
-        )
-       return solution[traj_vars], solution[time_release], solution[time_target], cost(solution)
-    traj, t_release, t_target, _ = min(initial_trajectories, key=lambda s: s[-1])
-
-    # 4. Solve the optimization problem.
-    return onp.array(traj), t_release.item(), t_target.item()
-
-
+    return jaxls.LeastSquaresProblem(factors, [traj_vars, time_release_var, time_target_var, start_var, target_pos_var]).analyze()

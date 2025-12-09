@@ -10,19 +10,18 @@ import numpy as np
 import pyroki as pk
 from .trajectory_generation.generate_samples import solve_by_sampling
 import tyro
-from .load_urdf import load_ur7e_with_gripper
-from ament_index_python.packages import get_package_share_directory
 import os
+from robot_descriptions.loaders.yourdfpy import load_robot_description
 
 def main():
     # Initialize robot
-    urdf = load_ur7e_with_gripper()
+    urdf = load_robot_description("ur5_description")
     robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
     # For UR5 it's important to initialize the robot in a safe configuration;
     default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141]) 
     robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
-    target_link_name = "robotiq_hande_end"
+    target_link_name = "ee_link"
 
     # Initialize world
     world = World(robot, urdf, target_link_name)
@@ -45,7 +44,8 @@ def main():
             dt,
             robot_max_reach=0.85 * 0.8, # max 
             max_vel=7, 
-            cache_dir=os.path.join(get_package_share_directory('planning'), 'tmp', 'saved_problems')
+            cache_dir=os.path.join('/Users/jhaertel/code/catchv22/src/planning', 'saved_problems'),
+            num_samples=50,
         )
     
     # Visualize!

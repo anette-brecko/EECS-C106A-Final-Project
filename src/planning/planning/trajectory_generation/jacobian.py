@@ -2,8 +2,8 @@ import jax
 import jax.numpy as jnp
 import jaxlie
 import pyroki as pk
-from jax.typing import ArrayLike 
 
+@jax.jit
 def compute_ee_spatial_jacobian(
     robot: pk.Robot, 
     q: jax.Array,

@@ -2,16 +2,16 @@ from typing import Sequence
 
 import jax
 import jax.numpy as jnp
-import jax_dataclasses as jdc
 import jaxlie
-import jaxls
 import numpy as onp
 import pyroki as pk
-from jax import Array
 from jax.typing import ArrayLike 
 
 from .solve_ik import solve_ik_with_collision
 from .jacobian import compute_ee_spatial_jacobian
+from .gen_traj import solve_static_trajopt, choose_best_samples, analyze_problem
+
+import os
 
 def quadratic_bezier_trajectory(p0, p1, p2):
     return lambda t: p0 * (1 - t) ** 2 + 2 * p1 * t * (1 - t) + p2 * t ** 2
@@ -19,11 +19,33 @@ def quadratic_bezier_trajectory(p0, p1, p2):
 def cubic_bezier_trajectory(p0, p1, p2, p3):
     return lambda t: p0 * (1 - t) ** 3 + 3 * p1 * t * (1 - t) ** 2 + 3 * p2 * t ** 2 * (1 - t) + p3 * t ** 3
 
+def solve_by_sampling(
+    robot: pk.Robot,
+    robot_coll: pk.collision.RobotCollision,
+    world_coll: Sequence[pk.collision.CollGeom],
+    target_link_name: str,
+    start_cfg: ArrayLike,
+    target_position: ArrayLike,
+    timesteps: int,
+    dt: float,
+    max_vel: float,
+    robot_max_reach: float,
+    num_samples: int = 300,
+    num_samples_iterated: int = 10,
+    g: float = 9.81,
+    cache_dir: str | os.PathLike = ""
+) -> tuple[onp.ndarray, float, float]:
+    samples = generate_samples(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, g, max_vel, robot_max_reach, num_samples)
+    problem = analyze_problem(robot, robot_coll, world_coll, target_link_name, timesteps, dt, g, cache_dir)
+    best_samples = choose_best_samples(samples, num_samples_iterated, robot, problem, start_cfg, target_position, timesteps)
+    return solve_static_trajopt(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, best_samples, g)
+
+
 def generate_samples(
     robot: pk.Robot,
     robot_coll: pk.collision.RobotCollision,
     world_coll: Sequence[pk.collision.CollGeom],
-    target_link_index: int,
+    target_link_name: str,
     q_0: ArrayLike,
     target_position: ArrayLike,
     timesteps: int,
@@ -32,10 +54,11 @@ def generate_samples(
     max_vel: float,
     robot_max_reach: float,
     num_samples: int = 100,
-) -> list[tuple[Array, float, float]]:
+) -> list[tuple[onp.ndarray, float, float]]:
     """Generates a list of samples for the trajectory optimization problem."""
     samples = []
-
+    target_link_index = robot.links.names.index(target_link_name)
+    
     def gen_pos_sample():
         """Generates a position samples from a uniform distribution in a user defined box"""
         # Should have positive x-axis and z-axis bias
@@ -64,12 +87,7 @@ def generate_samples(
         z_axis = onp.cross(x_axis, y_axis)
 
         rot = jaxlie.SO3.from_matrix(onp.column_stack((x_axis, y_axis, z_axis)))
-
-        # Generate random orientation pointing in the z-direction
-        z_rot = jaxlie.SO3.from_z_radians(onp.random.uniform(-0.3 * onp.pi, 0.3 * onp.pi))
-
-        random_rot = rot #@ z_rot
-        return random_rot.wxyz
+        return rot.wxyz
 
     while len(samples) < num_samples:
         x_rel = jnp.array(gen_pos_sample())
@@ -141,13 +159,14 @@ def generate_samples(
                 return deaccel_trajectory( (t - t_rel) / t_deaccel )
 
         traj_points = [traj(t) for t in dt * onp.arange(0, timesteps)]
-        traj_points = jnp.stack(traj_points)
+        traj_points = onp.array(jnp.stack(traj_points))
         samples.append((traj_points, t_rel, t_rel + dt_air))
         
         if (len(samples) % 10) == 0 and samples: print(f'Generated {len(samples)} samples')
     
     return samples
 
+#@jax.jit
 def check_ik_convergence(
     robot: pk.Robot, 
     q_sol: jax.Array, 

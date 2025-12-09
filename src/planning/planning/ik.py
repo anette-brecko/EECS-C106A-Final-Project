@@ -16,12 +16,11 @@ import pyroki as pk
 
 from robot_descriptions.loaders.yourdfpy import load_robot_description
 
-from .trajectory_generation.gen_traj import solve_static_trajopt
-from .trajectory_generation.jacobian import compute_ee_spatial_jacobian
-from .trajectory_generation.solve_ik import solve_single_ik_with_collision
+from .trajectory_generation.generate_samples import solve_by_sampling
 
 from .world import World
-from .load_urdf import load_xacro_robot
+from .load_urdf import load_ur7e_with_gripper
+from .trajectory_generation.save_and_load import save_trajectory, load_trajectory
 import os
 
 
@@ -61,12 +60,12 @@ class IKPlanner(Node):
         # ----- PyRoki setup -----
         #urdf_path = "/opt/ros/humble/share/ur_description/urdf/ur.urdf.xacro"
 
-        urdf = load_xacro_robot()
+        urdf = load_ur7e_with_gripper()
         #urdf = load_robot_description("ur5_description")
         self.robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
-        default_cfg = np.array([4.722, -1.850, -1.425, -1.405, 1.593, -3.141])
+        default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141])
         self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
         self.target_link_name = "robotiq_hande_end"
 
@@ -153,31 +152,19 @@ class IKPlanner(Node):
     def _solve_to_target(self, start_cfg, target_pos, timesteps, dt):
         """ Solve the trajectory problem """
         world_coll = self.world.gen_world_coll()
-        samples = generate_samples(
-            self.robot, 
-            self.robot_coll,
-            world_coll,
-            self.target_link_name,
-            start_cfg, 
-            target_pos, 
-            timesteps,
-            dt,
-            9.81,
-            7,
-            0.85*0.8,
-            100
-        )
-        return solve_static_trajopt(
+        return solve_by_sampling(
             self.robot,
             self.robot_coll,
-            world_coll,
+            self.world.gen_world_coll(),
             self.target_link_name,
             start_cfg,
             target_pos,
             timesteps,
             dt,
-            0.85 * 0.8, # TODO: MAX REACH! Make parameter
-            7 # TODO: MAX VEL! Make parameter
+            10,
+            0.85 * 0.8, 
+            100,
+            10,
         )
     
     def _trajectory_points_to_msg(self, traj_points, dt) -> JointTrajectory:
@@ -239,7 +226,7 @@ class IKPlanner(Node):
                 continue
 
             if filename:
-                self._save_trajectory(
+                save_trajectory(
                     filename,
                     start_cfg,
                     target_pos,
@@ -250,6 +237,14 @@ class IKPlanner(Node):
                     dt
                 )
             return self._trajectory_points_to_msg(traj, dt), t_release
+
+    def play_loaded_trajectory(self, filename: str):
+        start_cfg, target_pos, traj, t_release, t_target, timesteps, dt = load_trajectory(filename)
+
+        # Visualize
+        self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
+
+        return self._trajectory_points_to_msg(np.array(traj), dt), t_release
 
     def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
         """ Convert JointState to configuration vector """
@@ -278,49 +273,7 @@ class IKPlanner(Node):
         
         return gradients
 
-    def _save_trajectory(
-            self,
-            filename: str, 
-            start_cfg: np.ndarray,
-            target_pos: np.ndarray,
-            trajectory: np.ndarray, 
-            t_release: float,
-            t_target: float,
-            timesteps: int, 
-            dt: float
-    ):
-        os.makedirs(os.path.dirname(os.path.abspath(filename)) or ".", exist_ok=True)
-        # Save dictionary of arrays
-        np.savez_compressed(
-            filename,
-            start_cfg=start_cfg,
-            target_pos=target_pos,
-            trajectory=trajectory,
-            t_release=t_release,
-            t_target=t_target,
-            timesteps=np.array(timesteps),
-            dt=np.array(dt) # Scalar wrapped in array
-        )
-        print(f"[IO] Trajectory saved to {filename}")
-    
-    def _load_trajectory(self, filename: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, float, float, int, float]:
-        if not os.path.exists(filename):
-            raise FileNotFoundError(f"Trajectory file not found: {filename}")
         
-        data = np.load(filename, allow_pickle=True)
-
-        # Extract data with safety checks
-        return data['start_cfg'], data['target_pos'], data['trajectory'], float(data['t_release']), float(data['t_target']), int(data['timesteps']), float(data['dt'])
-    
-    def play_loaded_trajectory(self, filename: str):
-        start_cfg, target_pos, traj, t_release, t_target, timesteps, dt = self._load_trajectory(filename)
-
-        # Visualize
-        self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
-
-        return self._trajectory_points_to_msg(np.array(traj), dt), t_release
-
-    
 def main(args=None):
     rclpy.init(args=args)
     node = IKPlanner()
