@@ -44,7 +44,7 @@ class TransformBallPose(Node):
         try:
             trans = self.tf_buffer.lookup_transform(
                 'base_link', 
-                'camera_depth_optical_frame', #TODO: change based on camera 
+                'kinect',  
                 rclpy.time.Time()
             )
 

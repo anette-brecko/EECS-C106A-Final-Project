@@ -25,33 +25,6 @@ def generate_launch_description():
             'rgb_camera.color_profile': '1920x1080x30',
         }.items(),
     )
-
-    # Args for perception node
-    # A: 0.018220229403581867, B: 0.9981487569378191, C: 0.058026565157408616, D: -0.07078744977049146
-
-    
-    plane_a_launch_arg = DeclareLaunchArgument(
-        'plane_a',
-        default_value='0.018220229403581867'
-    )
-    plane_b_launch_arg = DeclareLaunchArgument(
-        'plane_b',
-        default_value='0.9981487569378191'
-    )
-    plane_c_launch_arg = DeclareLaunchArgument(
-        'plane_c',
-        default_value='0.058026565157408616'
-    )
-    plane_d_launch_arg = DeclareLaunchArgument(
-        'plane_d',
-        default_value='-0.07078744977049146'
-    )
-    plane_a = LaunchConfiguration('plane_a')
-    plane_b = LaunchConfiguration('plane_b')
-    plane_c = LaunchConfiguration('plane_c')
-    plane_d = LaunchConfiguration('plane_d')
-
-
     # Perception node
     perception_node = Node(
         package='perception',
@@ -153,10 +126,6 @@ def generate_launch_description():
     
     return LaunchDescription([
         ar_marker_launch_arg,
-        plane_a_launch_arg,
-        plane_b_launch_arg,
-        plane_c_launch_arg,
-        plane_d_launch_arg,
         realsense_launch,
         aruco_launch,
         perception_node,

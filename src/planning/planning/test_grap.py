@@ -14,11 +14,11 @@ import numpy as np
 
 from planning.ik import IKPlanner
 
-class UR7e_BallGraspAndLaunch(Node):
+class UR7e_BallGrasp(Node):
     def __init__(self):
         super().__init__('ball_grasp')
 
-        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) 
+        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) # TODO: CHECK IF TOPIC ALIGNS WITH YOURS
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
 
         self.exec_ac = ActionClient(
@@ -27,11 +27,6 @@ class UR7e_BallGraspAndLaunch(Node):
         )
 
         self.gripper_cli = self.create_client(Trigger, '/toggle_gripper')
-
-        self.ball_pose = None
-        self.current_plan = None
-        self.joint_state = None
-        self.ball_loaded = False
 
         self.ik_planner = IKPlanner()
 
@@ -65,32 +60,6 @@ class UR7e_BallGraspAndLaunch(Node):
         self.launch_state = pre_grasp_state
         self.job_queue.append(self.launch_state)
         self.execute_jobs()
-        self.ball_loaded = True
-
-
-    def target_callback(self, target_pose):
-        if self.job_queue or not self.ball_loaded: # Make sure ball is loaded and ready to launch
-            return
-
-        if self.joint_state is None:
-            self.get_logger().info("No joint state yet, cannot proceed")
-            return
-
-        # 5) Launch Ball
-        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, target_pose, 50, 1.5)
-        self.job_queue.append((throwing_trajectory, t_release))
-
-        # 6) Release the gripper
-        self.job_queue.append('toggle_grip')
-
-        self.job_queue.append(self.launch_state)
-        self.execute_jobs()
-        self.reset()
-
-    def reset(self):
-        self.ball_pose = None
-        self.target_pose = None
-        self.ball_loaded = False
 
     def execute_jobs(self):
         if not self.job_queue:
@@ -111,9 +80,6 @@ class UR7e_BallGraspAndLaunch(Node):
             self.get_logger().info("I'm gonna touch your balls")
             
             self._execute_joint_trajectory(traj.joint_trajectory)
-        elif isinstance(next_job, tuple):
-            self.get_logger().info("Planned to launch")
-            self._execute_joint_trajectory(next_job[0], release_time=next_job[1])
         elif next_job == 'toggle_grip':
             self.get_logger().info("Toggling gripper")
             self._toggle_gripper()
@@ -191,7 +157,7 @@ class UR7e_BallGraspAndLaunch(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = UR7e_BallGraspAndLaunch()
+    node = UR7e_BallGrasp()
     rclpy.spin(node)
     node.destroy_node()
 
