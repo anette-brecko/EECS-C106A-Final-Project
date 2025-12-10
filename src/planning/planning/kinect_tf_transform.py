@@ -11,14 +11,14 @@ class ConstantTransformPublisher(Node):
         super().__init__('constant_tf_publisher')
         self.br = StaticTransformBroadcaster(self)
 
-        self.declare_parameter('ar_marker', 'ar_marker_7')
-        marker = self.get_parameter('ar_marker').get_parameter_value().string_value
+        # self.declare_parameter('ar_marker', 'ar_marker_7')
+        # marker = self.get_parameter('ar_marker').get_parameter_value().string_value
 
-        # Homogeneous transform G_ar->base_link
+        # Homogeneous transform kinect->base_link
         G = np.array([
-            [-1, 0, 0, 0.0],
-            [ 0, 0, 1, 0.16],
-            [ 0, 1, 0, -0.13],
+            [1, 0, 0, 0.0],
+            [ 0, 0, -1, 1.04],
+            [ 0, -1, 0, 0.24],
             [ 0, 0, 0, 1.0]
         ])
 
@@ -26,7 +26,7 @@ class ConstantTransformPublisher(Node):
         self.transform = TransformStamped()
         
         self.transform.child_frame_id = "base_link"
-        self.transform.header.frame_id = "ar_marker_7"
+        self.transform.header.frame_id = "kinect"
 
         quat = R.from_matrix(G[0:3,0:3]).as_quat()
         
