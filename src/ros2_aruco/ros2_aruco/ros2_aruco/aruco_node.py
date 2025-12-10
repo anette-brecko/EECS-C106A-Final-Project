@@ -298,11 +298,14 @@ class ArucoNode(rclpy.node.Node):
                 if self.camera_frame == "":
                     # Note the info_msg header is better practice just testing this
                     # transform.header.frame_id = self.info_msg.header.frame_id
-                    transform.header.frame_id = "camera1"
+                    # transform.header.frame_id = "camera1"
+                    transform.header.frame_id = f"ar_marker_{marker_id[0]}"
                 else:
                     transform.header.frame_id = self.camera_frame
-                transform.child_frame_id = f"ar_marker_{marker_id[0]}"
+                # transform.child_frame_id = f"ar_marker_{marker_id[0]}"
+                transform.child_frame_id = "camera1"
                 
+
                 transform.transform.translation.x = pose.position.x
                 transform.transform.translation.y = pose.position.y
                 transform.transform.translation.z = pose.position.z
