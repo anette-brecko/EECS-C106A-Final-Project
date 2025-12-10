@@ -107,13 +107,13 @@ def solve_static_trajopt(
         g
     )
 
-    trajs, t_rels, t_tgts = np.array(trajs), np.array(t_rels), np.array(t_tgts)
+    trajs, t_rels, t_tgts = onp.array(trajs), onp.array(t_rels), onp.array(t_tgts)
     
-    solved_samples = list(zip(trajs, t_rels.flatten(), np.flatten()))
+    solved_samples = list(zip(trajs, t_rels.flatten(), t_tgts.flatten()))
 
     return choose_best_samples(
         solved_samples,
-        len(samples),
+        len(solved_samples),
         robot,
         problem,
         start_cfg,

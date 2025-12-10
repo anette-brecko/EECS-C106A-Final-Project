@@ -39,6 +39,8 @@ def main():
     dt = time_horizon / timesteps
 
     status = "regenerate"
+    traj, t_release, t_target = None, None, None
+    solutions = None
     while True:
         # Check if we need to solve again
         match status:

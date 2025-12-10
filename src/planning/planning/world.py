@@ -43,7 +43,7 @@ class World:
         self.visualize_tf(start_cfg, target_pos)
         self.visualize_ball_trajectory(ball_traj, t_release, t_target, 0.2, 30)
         self.visualize_ee_waypoints(traj)
-        self.animate(ball_traj, traj, t_release, timesteps, dt)
+        return self.animate(ball_traj, traj, t_release, timesteps, dt)
 
     def visualize_world(self):
         self.server.scene.add_grid("/grid", width=2, height=2, cell_size=0.1)
@@ -165,8 +165,9 @@ class World:
                 slider.value = (slider.value + 1) % timesteps
 
             if regenerate.value:
-                regenerate.value = False
                 return "regenerate"
+            elif next.value:
+                return "next"
             elif execute.value:
                 return False
             
