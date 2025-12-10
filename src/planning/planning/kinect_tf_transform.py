@@ -6,9 +6,9 @@ from tf2_ros import StaticTransformBroadcaster
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 
-class ConstantTransformPublisher(Node):
+class KinectConstantTransformPublisher(Node):
     def __init__(self):
-        super().__init__('constant_tf_publisher')
+        super().__init__('kinect_constant_tf_publisher')
         self.br = StaticTransformBroadcaster(self)
 
         # self.declare_parameter('ar_marker', 'ar_marker_7')
@@ -48,7 +48,7 @@ class ConstantTransformPublisher(Node):
 
 def main():
     rclpy.init()
-    node = ConstantTransformPublisher()
+    node = KinectConstantTransformPublisher()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
