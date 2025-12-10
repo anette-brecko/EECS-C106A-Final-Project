@@ -198,38 +198,55 @@ class IKPlanner(Node):
         dt = time_horizon / timesteps
         start_cfg = self._joint_state_to_cfg(start_joint_state)
 
-        while True:
-            # Solve
-            traj, t_release, t_target = self._solve_to_target(start_cfg, target_pos, timesteps, dt)
-
-            # Visualize
-            status = self.world.visualize_all(
-                    start_cfg, 
-                    target_pos, 
-                    traj, 
-                    t_release, 
-                    t_target, 
-                    timesteps, 
-                    dt
-                )
-
-            # Check if we need to solve again
-            if "regenerate" == status: 
-                print("STARTING AGAIN!")
-                continue
-
-            if filename:
-                save_trajectory(
-                    filename,
+        status = "regenerate"
+    traj, t_release, t_target = None, None, None
+    solutions = None
+    while True:
+        # Check if we need to solve again
+        match status:
+            case "regenerate" | "next" if not solutions:
+                solutions = solve_by_sampling(
+                    robot,
+                    robot_coll,
+                    world.gen_world_coll(),
+                    target_link_name,
                     start_cfg,
                     target_pos,
-                    traj,
-                    t_release,
-                    t_target,
                     timesteps,
-                    dt
+                    dt,
+                    robot_max_reach=0.85 * 0.8, # max 
+                    max_vel=7, 
+                    num_samples=50,
+                    num_samples_iterated=10,
                 )
-            return self._trajectory_points_to_msg(traj, dt), t_release
+                traj, t_release, t_target = solutions.pop(0)
+            case "next" if solutions:
+                traj, t_release, t_target = solutions.pop(0)
+            case "execute":
+                if filename:
+                    save_trajectory(
+                        filename,
+                        start_cfg,
+                        target_pos,
+                        traj,
+                        t_release,
+                        t_target,
+                        timesteps,
+                        dt
+                    )
+                return self._trajectory_points_to_msg(traj, dt), t_release
+
+        status = world.visualize_all(
+                start_cfg, 
+                target_pos, 
+                traj, 
+                t_release, 
+                t_target, 
+                timesteps, 
+                dt
+            )
+
+            
 
     def play_loaded_trajectory(self, filename: str):
         start_cfg, target_pos, traj, t_release, t_target, timesteps, dt = load_trajectory(filename)

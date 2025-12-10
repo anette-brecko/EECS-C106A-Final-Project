@@ -11,8 +11,8 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    # RealSense (include rs_launch.py)
-    realsense_launch = IncludeLaunchDescription(
+    # Logitech launch
+    realsense_launch = IncludeLaunchDescription( #TODO: Change this to be usb launch
         PythonLaunchDescriptionSource(
             os.path.join(
                 get_package_share_directory('realsense2_camera'),
@@ -20,40 +20,13 @@ def generate_launch_description():
                 'rs_launch.py'
             )
         ),
-        launch_arguments={
+        launch_arguments={ # TODO: IDk if you need these
             'pointcloud.enable': 'true',
             'rgb_camera.color_profile': '1920x1080x30',
         }.items(),
     )
-
-    # Args for perception node
-    # A: 0.018220229403581867, B: 0.9981487569378191, C: 0.058026565157408616, D: -0.07078744977049146
-
-    
-    plane_a_launch_arg = DeclareLaunchArgument(
-        'plane_a',
-        default_value='0.018220229403581867'
-    )
-    plane_b_launch_arg = DeclareLaunchArgument(
-        'plane_b',
-        default_value='0.9981487569378191'
-    )
-    plane_c_launch_arg = DeclareLaunchArgument(
-        'plane_c',
-        default_value='0.058026565157408616'
-    )
-    plane_d_launch_arg = DeclareLaunchArgument(
-        'plane_d',
-        default_value='-0.07078744977049146'
-    )
-    plane_a = LaunchConfiguration('plane_a')
-    plane_b = LaunchConfiguration('plane_b')
-    plane_c = LaunchConfiguration('plane_c')
-    plane_d = LaunchConfiguration('plane_d')
-
-
     # Perception node
-    perception_node = Node(
+    perception_node = Node( #TODO: Replace with kinect / logitech perception node, make sure that the executable name is in the setup.py of your package
         package='perception',
         executable='process_pointcloud',
         name='process_pointcloud',
@@ -79,19 +52,26 @@ def generate_launch_description():
 
     ar_marker_launch_arg = DeclareLaunchArgument(
         'ar_marker',
-        default_value='ar_marker_7'
+        default_value='ar_marker_7' # TODO: Change to our desried ar_marker
     )
     ar_marker = LaunchConfiguration('ar_marker')
 
     # Planning TF node
-    planning_tf_node = Node(
+    aruco_tf_node = Node(
         package='planning',
-        executable='tf',
-        name='tf_node',
+        executable='aruco_tf',
+        name='aruco_tf_node',
         output='screen',
         parameters=[{
             'ar_marker': ar_marker,
         }]
+    )
+    
+    kinect_tf_node = Node(
+        package='planning',
+        executable='kinect_tf',
+        name='kinect_tf_node',
+        output='screen',
     )
 
     transform_cube_pose_node = Node(
@@ -153,14 +133,11 @@ def generate_launch_description():
     
     return LaunchDescription([
         ar_marker_launch_arg,
-        plane_a_launch_arg,
-        plane_b_launch_arg,
-        plane_c_launch_arg,
-        plane_d_launch_arg,
         realsense_launch,
         aruco_launch,
         perception_node,
-        planning_tf_node,
+        kinect_tf_node,
+        aruco_tf_node,
         static_base_world,
         transform_cube_pose_node,
         ik_node,

@@ -6,6 +6,14 @@ import tempfile
 from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 import subprocess
 
+import jaxls
+from jax import Array
+import jax.numpy as jnp
+
+class UR7eJointVar(
+    jaxls.Var[Array],
+    default_factory=lambda: jnp.zeros(6)
+): ...
 
 def load_xacro_robot(xacro_path, mappings) -> yourdfpy.URDF:
     """
@@ -95,6 +103,7 @@ def load_ur7e_with_gripper() -> yourdfpy.URDF:
             j.mimic = None  # Crucial: stop it from looking for the driver
 
     urdf._update_actuated_joints()
+    return urdf
 
 def load_ur7e() -> yourdfpy.URDF:
     ur_desc_path = get_package_share_directory('ur_description')

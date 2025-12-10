@@ -31,10 +31,12 @@ setup(
     entry_points={
         'console_scripts': [
             'main = planning.main:main',
-            'tf = planning.static_tf_transform:main',
+            'aruco_tf = planning.aruco_tf_transform:main',
+            'kinect_tf = planning.kinect_tf_transform:main',
             'ik = planning.ik:main',
             'transform_cube_pose = planning.transform_cube_pose:main',
             'test = planning.test_launch:main',
+            'tickle_balls = planning.test_grab:main',
             'replay = planning.replay_test:main',
             'sim = planning.sim:main'
         ],

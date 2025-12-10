@@ -43,7 +43,7 @@ class World:
         self.visualize_tf(start_cfg, target_pos)
         self.visualize_ball_trajectory(ball_traj, t_release, t_target, 0.2, 30)
         self.visualize_ee_waypoints(traj)
-        self.animate(ball_traj, traj, t_release, timesteps, dt)
+        return self.animate(ball_traj, traj, t_release, timesteps, dt)
 
     def visualize_world(self):
         self.server.scene.add_grid("/grid", width=2, height=2, cell_size=0.1)
@@ -150,12 +150,13 @@ class World:
                 color=(255, 0, 0),
         )
 
+        self.server.gui.reset()
         slider = self.server.gui.add_slider(
             "Timestep", min=0, max=timesteps - 1, step=1, initial_value=0
         )
-        self.server.gui.reset()
         playing = self.server.gui.add_checkbox("Playing", initial_value=True)
         execute = self.server.gui.add_button("Execute")
+        next_button = self.server.gui.add_button("Next")
         regenerate = self.server.gui.add_button("Regenerate")
 
 
@@ -164,10 +165,11 @@ class World:
                 slider.value = (slider.value + 1) % timesteps
 
             if regenerate.value:
-                regenerate.value = False
                 return "regenerate"
+            elif next_button.value:
+                return "next"
             elif execute.value:
-                return False
+                return "execute"
             
             # Update robot
             self.urdf_vis.update_cfg(robot_traj[slider.value])
