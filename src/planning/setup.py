@@ -31,6 +31,7 @@ setup(
     entry_points={
         'console_scripts': [
             'main = planning.main:main',
+            'ball_tf = planning.ball_tf_transform:main',
             'aruco_tf = planning.aruco_tf_transform:main',
             'kinect_tf = planning.kinect_tf_transform:main',
             'ik = planning.ik:main',

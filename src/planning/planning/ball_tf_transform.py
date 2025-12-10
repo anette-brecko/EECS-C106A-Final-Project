@@ -6,27 +6,19 @@ from tf2_ros import StaticTransformBroadcaster
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 
-class ArucoConstantTransformPublisher(Node):
+class LogitechConstantTransformPublisher(Node):
     def __init__(self):
-        super().__init__('aruco_constant_tf_publisher')
+        super().__init__('logitech_constant_tf_publisher')
         self.br = StaticTransformBroadcaster(self)
 
-        self.declare_parameter('ar_marker', 'ar_marker_6')
-        marker = self.get_parameter('ar_marker').get_parameter_value().string_value
-
-        # Homogeneous transform G_ar->base_link
-        G = np.array([
-            [-1, 0, 0, 0.0],
-            [ 0, 0, 1, 0.16],
-            [ 0, 1, 0, -0.13],
-            [ 0, 0, 0, 1.0]
-        ])
+        # Calculate a dynamic transform matrix for logitech->aruco tag
+        
 
         # Create TransformStamped
         self.transform = TransformStamped()
         
-        self.transform.child_frame_id = "base_link"
-        self.transform.header.frame_id = "ar_marker_6"
+        self.transform.child_frame_id = "ar_marker_6"
+        self.transform.header.frame_id = "camera1"
 
         quat = R.from_matrix(G[0:3,0:3]).as_quat()
         
@@ -48,7 +40,7 @@ class ArucoConstantTransformPublisher(Node):
 
 def main():
     rclpy.init()
-    node = ArucoConstantTransformPublisher()
+    node = LogitechConstantTransformPublisher()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
