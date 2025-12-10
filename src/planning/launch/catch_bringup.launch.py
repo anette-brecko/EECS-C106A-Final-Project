@@ -12,31 +12,33 @@ import os
 
 def generate_launch_description():
     # Logitech launch
-    realsense_launch = IncludeLaunchDescription( #TODO: Change this to be usb launch
+    logitech_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                get_package_share_directory('realsense2_camera'),
+                get_package_share_directory('usb_cam'),
                 'launch',
-                'rs_launch.py'
+                'camera.launch.py'
             )
         ),
         launch_arguments={ # TODO: IDk if you need these
-            'pointcloud.enable': 'true',
+            #'pointcloud.enable': 'true',
             'rgb_camera.color_profile': '1920x1080x30',
         }.items(),
     )
-    # Perception node
-    perception_node = Node( #TODO: Replace with kinect / logitech perception node, make sure that the executable name is in the setup.py of your package
-        package='perception',
-        executable='process_pointcloud',
-        name='process_pointcloud',
+    # Perception node for logitech
+    perception_node = Node(
+        package='ball_sense',
+        executable='ball_sense',
+        name='ball_sense',
         output='screen',
-        parameters=[{
-            'plane.a': plane_a,
-            'plane.b': plane_b,
-            'plane.c': plane_c,
-            'plane.d': plane_d,
-        }]
+
+        # Our HSV parametrs are set in ball_sense, shouldn't change too much from those vals
+        # parameters=[{
+        #     'plane.a': plane_a,
+        #     'plane.b': plane_b,
+        #     'plane.c': plane_c,
+        #     'plane.d': plane_d,
+        # }]
     )
 
     # ArUco recognition
@@ -52,7 +54,7 @@ def generate_launch_description():
 
     ar_marker_launch_arg = DeclareLaunchArgument(
         'ar_marker',
-        default_value='ar_marker_7' # TODO: Change to our desried ar_marker
+        default_value='ar_marker_6' # TODO: Change to our desried ar_marker
     )
     ar_marker = LaunchConfiguration('ar_marker')
 
