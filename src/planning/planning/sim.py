@@ -35,7 +35,7 @@ def main():
     start_cfg = default_cfg
     target_pos = np.array([-0.3, 2.0, .7])
     time_horizon = 1.19
-    timesteps = 40
+    timesteps = 50
     dt = time_horizon / timesteps
 
     status = "regenerate"
