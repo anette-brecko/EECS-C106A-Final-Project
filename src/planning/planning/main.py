@@ -11,6 +11,8 @@ from sensor_msgs.msg import JointState
 from tf2_ros import Buffer, TransformListener
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+from std_msgs.msg import Float64
+import atexit
 
 from planning.ik import IKPlanner
 
@@ -20,6 +22,8 @@ class UR7e_BallGraspAndLaunch(Node):
 
         self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) 
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
+
+        self.speed_pub = self.create_publisher(Float64, "/speed_scaling_factor", 1)
 
         self.exec_ac = ActionClient(
             self, FollowJointTrajectory,
@@ -36,6 +40,44 @@ class UR7e_BallGraspAndLaunch(Node):
         self.ik_planner = IKPlanner()
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
+
+        atexit.register(self.reset_speed_on_exit)
+
+        # 3. Set the speed to full (100%) upon launch
+        self.set_speed(1.0)
+    
+    def reset_speed_on_exit(self):
+        """
+        Called automatically when the Python interpreter is shutting down.
+        This attempts to set the speed to the default 10% (0.1).
+        """
+        self.get_logger().info(f"Node shutting down. Attempting to reset speed to DEFAULT ({0.1})...")
+        
+        # Need to publish a message directly without relying on rclpy.spin_once 
+        # which might not be running during shutdown.
+        
+        # We perform one final publish before the node context is lost.
+        # This is the best effort for cleanup, but not guaranteed if the node is hard-killed.
+        msg = Float64()
+        msg.data = 0.1
+        
+        # If the publisher is still valid, publish one last time
+        if self.publisher_ is not None:
+             self.publisher_.publish(msg)
+             self.get_logger().info("Successfully published reset speed.")
+        else:
+             self.get_logger().warn("Publisher was already destroyed during shutdown.")
+
+    def set_speed(self, speed_factor: float):
+        """Publishes the desired speed factor."""
+        if not (0.0 <= speed_factor <= 1.0):
+            self.get_logger().warn(f"Speed factor {speed_factor} is out of range (0.0 to 1.0). Capping.")
+            speed_factor = max(0.0, min(1.0, speed_factor))
+            
+        msg = Float64()
+        msg.data = speed_factor
+        self.publisher_.publish(msg)
+        self.get_logger().info(f"Published speed factor: {speed_factor}")
 
     def joint_state_callback(self, msg: JointState):
         self.joint_state = msg

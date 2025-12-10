@@ -11,8 +11,6 @@ class KinectConstantTransformPublisher(Node):
         super().__init__('kinect_constant_tf_publisher')
         self.br = StaticTransformBroadcaster(self)
 
-        # self.declare_parameter('ar_marker', 'ar_marker_7')
-        # marker = self.get_parameter('ar_marker').get_parameter_value().string_value
 
         # Homogeneous transform kinect->base_link
         G = np.array([
