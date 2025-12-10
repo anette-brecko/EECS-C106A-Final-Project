@@ -156,6 +156,7 @@ class World:
         self.server.gui.reset()
         playing = self.server.gui.add_checkbox("Playing", initial_value=True)
         execute = self.server.gui.add_button("Execute")
+        next = self.server.gui.add_button("Next")
         regenerate = self.server.gui.add_button("Regenerate")
 
 

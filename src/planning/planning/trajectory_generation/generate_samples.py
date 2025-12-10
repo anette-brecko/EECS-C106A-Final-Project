@@ -9,7 +9,7 @@ from jax.typing import ArrayLike
 
 from .solve_ik import solve_ik_with_collision
 from .jacobian import compute_ee_spatial_jacobian
-from .gen_traj import solve_static_trajopt, choose_best_samples, analyze_problem
+from .gen_traj import solve_static_trajopt, choose_best_samples, _build_problem
 
 import os
 
@@ -33,12 +33,23 @@ def solve_by_sampling(
     num_samples: int = 300,
     num_samples_iterated: int = 10,
     g: float = 9.81,
-    cache_dir: str | os.PathLike = ""
-) -> tuple[onp.ndarray, float, float]:
+) -> list[tuple[onp.ndarray, float, float]]:
     samples = generate_samples(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, g, max_vel, robot_max_reach, num_samples)
-    problem = analyze_problem(robot, robot_coll, world_coll, target_link_name, timesteps, dt, g, cache_dir)
+    
+    problem = _build_problem(
+            robot, 
+            robot_coll, 
+            world_coll, 
+            robot.links.names.index(target_link_name), 
+            jnp.array(start_cfg),
+            jnp.array(target_position),
+            timesteps, 
+            dt, 
+            g
+        )
+
     best_samples = choose_best_samples(samples, num_samples_iterated, robot, problem, start_cfg, target_position, timesteps)
-    return solve_static_trajopt(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, best_samples, g, cache_dir)
+    return solve_static_trajopt(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, best_samples, g)
 
 
 def generate_samples(

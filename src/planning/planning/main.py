@@ -108,7 +108,8 @@ class UR7e_BallGraspAndLaunch(Node):
                 return
 
             self.get_logger().info("Planned to position")
-
+            self.get_logger().info("I'm gonna touch your balls")
+            
             self._execute_joint_trajectory(traj.joint_trajectory)
         elif isinstance(next_job, tuple):
             self.get_logger().info("Planned to launch")

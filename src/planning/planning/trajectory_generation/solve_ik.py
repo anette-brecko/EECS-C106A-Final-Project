@@ -14,9 +14,9 @@ def solve_ik_with_collision(
     coll: pk.collision.RobotCollision,
     world_coll_list: Sequence[pk.collision.CollGeom],
     target_link_index: int,
-    start_cfg: ArrayLike,
-    target_position: jax.Array,
-    target_wxyz: jax.Array,
+    start_cfg: jnp.array,
+    target_position: jnp.array,
+    target_wxyz: jnp.array,
     pos_weight: float = 5.0,
     rot_weight: float = 1.0,
     self_coll_weight: float = 0.02
