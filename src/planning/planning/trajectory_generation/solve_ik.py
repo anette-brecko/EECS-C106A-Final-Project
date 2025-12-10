@@ -61,8 +61,7 @@ def solve_ik_with_collision(
                 joint_var,
                 jnp.array([target_link_index]),
                 jnp.array([0.001])
-             )
-,
+             ),
         ]
     )
     factors.extend(

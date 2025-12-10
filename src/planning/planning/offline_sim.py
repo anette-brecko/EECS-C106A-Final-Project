@@ -42,10 +42,8 @@ def main():
     solutions = None
     while True:
         # Check if we need to solve again
-        print(status)
         match status:
             case "regenerate" | "next" if not solutions:
-                print("STARTING AGAIN!")
                 solutions = solve_by_sampling(
                     robot,
                     robot_coll,

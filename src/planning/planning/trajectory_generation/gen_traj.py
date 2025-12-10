@@ -13,7 +13,8 @@ from .jacobian import compute_ee_spatial_jacobian
 
 import os
 
-# os.environ["JAX_PLATFORM_NAME"] = "cpu"
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
+jax.config.update('jax_num_cpu_devices', 24)
 # jax.config.update("jax_logging_level", "WARNING")
 # jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
 # jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
@@ -272,11 +273,12 @@ def _build_problem_safety(
     return jaxls.LeastSquaresProblem(factors, [traj_vars, time_release_var, time_target_var, start_var, target_pos_var]).analyze()
 
 
+@jax.jit
 def _build_problem(
     robot: pk.Robot,
     robot_coll: pk.collision.RobotCollision,
     world_coll: Sequence[pk.collision.CollGeom],
-    target_link_index: int,
+    target_link_index: jdc.Static[int],
     start_cfg: jnp.ndarray,
     target_pos: jnp.ndarray,
     timesteps: jdc.Static[int],
@@ -306,12 +308,7 @@ def _build_problem(
             robot_batched,
             traj_vars,
             jnp.array([target_link_index]),
-            jnp.array([1.0 / timesteps])[None]
-        )
-    ]
-
-    # Collision avoidance.
-    def compute_world_coll_residual(
+            jnp.array([1.0 def compute_world_coll_residual(
         vals: jaxls.VarValues,
         robot: pk.Robot,
         robot_coll: pk.collision.RobotCollision,
@@ -327,7 +324,7 @@ def _build_problem(
         )
         colldist = pk.collision.colldist_from_sdf(dist, 0.1)
         return (colldist * 20.0).flatten()
-
+    
     for world_coll_obj in world_coll:
         factors.append(
             jaxls.Cost(
@@ -341,6 +338,66 @@ def _build_problem(
                 ),
                 name="World Collision (sweep)",
             )
+        )/ timesteps])[None]
+        )
+    ]
+
+    # Collision avoidance.
+    def compute_batched_world_coll_residual(
+        vals: jaxls.VarValues,
+        robot: pk.Robot,
+        robot_coll: pk.collision.RobotCollision,
+        world_coll_batch: pk.collision.CollGeom, # Shape: (N_Group, ...)
+        prev_traj_vars: jaxls.Var[jax.Array],
+        curr_traj_vars: jaxls.Var[jax.Array],
+    ):
+        # Calculate robot capsules (swept volume)
+        coll = robot_coll.get_swept_capsules(
+            robot, vals[prev_traj_vars], vals[curr_traj_vars]
+        )
+
+        # Helper: Check ONE world object against ALL robot links
+        def check_single_world_obj(single_world_obj):
+            # dist shape: (Num_Robot_Links, 1)
+            dist = pk.collision.collide(
+                coll.reshape((-1, 1)), 
+                single_world_obj.reshape((1, -1))
+            )
+            return dist
+
+        # Map over the batch of world objects (Shape: N_Group)
+        all_dists = jax.vmap(check_single_world_obj)(world_coll_batch)
+        
+        colldist = pk.collision.colldist_from_sdf(all_dists, 0.1)
+        return (colldist * 20.0).flatten()
+
+    # 2. Group objects by Python Type (e.g. Capsule, HalfSpace)
+    grouped_coll = defaultdict(list)
+    for obj in world_coll:
+        grouped_coll[type(obj)].append(obj)
+
+    # 3. Add one factor per TYPE (efficient batching)
+    for geom_type, geoms in grouped_coll.items():
+        # Stack objects of the same type
+        # Result is a single PyTree of arrays
+        world_coll_stacked = jax.tree.map(lambda *args: jnp.stack(args), *geoms)
+        
+        # We need to wrap it in a tuple/list to match the args structure for jaxls
+        # And ensure we don't accidentally vmap over the object properties incorrectly
+        # NOTE: jaxls passes 'args' directly to the residual function.
+        
+        factors.append(
+            jaxls.Cost(
+                compute_batched_world_coll_residual,
+                (
+                    robot,
+                    robot_coll,
+                    world_coll_stacked, 
+                    robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
+                    robot.joint_var_cls(jnp.arange(1, timesteps)),
+                ),
+                name=f"World Collision ({geom_type.__name__})",
+            )
         )
 
     factors.append(
@@ -349,7 +406,7 @@ def _build_problem(
             robot_coll_batched,
             traj_vars,
             0.005,
-            2000.0 / timesteps,
+            4000.0 / timesteps,
         )
     )
 
@@ -610,7 +667,7 @@ def _solve_static_trajopt(
     robot: pk.Robot,
     robot_coll: pk.collision.RobotCollision,
     world_coll: Sequence[pk.collision.CollGeom],
-    target_link_idx: int,
+    target_link_idx: jdc.Static[int],
     start_cfg: jnp.ndarray,
     target_pos: jnp.ndarray,
     timesteps: jdc.Static[int],

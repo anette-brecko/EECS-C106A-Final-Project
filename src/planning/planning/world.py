@@ -150,13 +150,13 @@ class World:
                 color=(255, 0, 0),
         )
 
+        self.server.gui.reset()
         slider = self.server.gui.add_slider(
             "Timestep", min=0, max=timesteps - 1, step=1, initial_value=0
         )
-        self.server.gui.reset()
         playing = self.server.gui.add_checkbox("Playing", initial_value=True)
         execute = self.server.gui.add_button("Execute")
-        next = self.server.gui.add_button("Next")
+        next_button = self.server.gui.add_button("Next")
         regenerate = self.server.gui.add_button("Regenerate")
 
 
@@ -166,10 +166,10 @@ class World:
 
             if regenerate.value:
                 return "regenerate"
-            elif next.value:
+            elif next_button.value:
                 return "next"
             elif execute.value:
-                return False
+                return "execute"
             
             # Update robot
             self.urdf_vis.update_cfg(robot_traj[slider.value])
