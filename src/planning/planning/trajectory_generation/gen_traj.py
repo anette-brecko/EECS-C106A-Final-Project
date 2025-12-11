@@ -11,14 +11,16 @@ from jax.typing import ArrayLike
 import jax_dataclasses as jdc
 from .jacobian import compute_ee_spatial_jacobian
 
+from collections import defaultdict
+
 import os
 
 os.environ["JAX_PLATFORM_NAME"] = "gpu"
-# jax.config.update('jax_num_cpu_devices', 24)
-jax.config.update("jax_logging_level", "WARNING")
+#jax.config.update('jax_num_cpu_devices', 24)
+# jax.config.update("jax_logging_level", "WARNING")
 jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
-jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
-jax.config.update("jax_explain_cache_misses", True)
+jax.config.update("jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir")
+# jax.config.update("jax_explain_cache_misses", True)
 
 class TimeVar(
     jaxls.Var[Array],
@@ -312,64 +314,39 @@ def _build_problem(
         )
     ]
 
-    # Collision avoidance.
-    def compute_batched_world_coll_residual(
+    def compute_world_coll_residual(
         vals: jaxls.VarValues,
         robot: pk.Robot,
         robot_coll: pk.collision.RobotCollision,
-        world_coll_batch: pk.collision.CollGeom, # Shape: (N_Group, ...)
+        world_coll_obj: pk.collision.CollGeom,
         prev_traj_vars: jaxls.Var[jax.Array],
         curr_traj_vars: jaxls.Var[jax.Array],
     ):
-        # Calculate robot capsules (swept volume)
         coll = robot_coll.get_swept_capsules(
             robot, vals[prev_traj_vars], vals[curr_traj_vars]
         )
-
-        # Helper: Check ONE world object against ALL robot links
-        def check_single_world_obj(single_world_obj):
-            # dist shape: (Num_Robot_Links, 1)
-            dist = pk.collision.collide(
-                coll.reshape((-1, 1)), 
-                single_world_obj.reshape((1, -1))
-            )
-            return dist
-
-        # Map over the batch of world objects (Shape: N_Group)
-        all_dists = jax.vmap(check_single_world_obj)(world_coll_batch)
-        
-        colldist = pk.collision.colldist_from_sdf(all_dists, 0.1)
+        dist = pk.collision.collide(
+            coll.reshape((-1, 1)), world_coll_obj.reshape((1, -1))
+        )
+        colldist = pk.collision.colldist_from_sdf(dist, 0.1)
         return (colldist * 20.0).flatten()
 
-    # 2. Group objects by Python Type (e.g. Capsule, HalfSpace)
-    grouped_coll = defaultdict(list)
-    for obj in world_coll:
-        grouped_coll[type(obj)].append(obj)
-
-    # 3. Add one factor per TYPE (efficient batching)
-    for geom_type, geoms in grouped_coll.items():
-        # Stack objects of the same type
-        # Result is a single PyTree of arrays
-        world_coll_stacked = jax.tree.map(lambda *args: jnp.stack(args), *geoms)
-        
-        # We need to wrap it in a tuple/list to match the args structure for jaxls
-        # And ensure we don't accidentally vmap over the object properties incorrectly
-        # NOTE: jaxls passes 'args' directly to the residual function.
-        
+    for world_coll_obj in world_coll:
         factors.append(
             jaxls.Cost(
-                compute_batched_world_coll_residual,
+                compute_world_coll_residual,
                 (
-                    robot,
-                    robot_coll,
-                    world_coll_stacked, 
+                    robot_batched,
+                    robot_coll_batched,
+                    jax.tree.map(lambda x: x[None], world_coll_obj),
                     robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
                     robot.joint_var_cls(jnp.arange(1, timesteps)),
                 ),
-                name=f"World Collision ({geom_type.__name__})",
+                name="World Collision (sweep)",
             )
         )
 
+    # Start / end pose constraints.
     factors.append(
         pk.costs.self_collision_cost(
             robot_batched,

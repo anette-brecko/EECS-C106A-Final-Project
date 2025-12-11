@@ -94,33 +94,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    ik_node = Node(
-        package='planning',
-        executable='ik',
-        name='ik_node',
-        output='screen',
-    )
-
-
-    # MoveIt 
-    ur_type = LaunchConfiguration("ur_type", default="ur7e")
-    launch_rviz = LaunchConfiguration("launch_rviz", default="true")
-
-    # Path to the MoveIt launch file
-    moveit_launch_file = os.path.join(
-                get_package_share_directory("ur_moveit_config"),
-                "launch",
-                "ur_moveit.launch.py"
-            )
-
-    # Include the MoveIt launch description
-    moveit_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(moveit_launch_file),
-        launch_arguments={
-            "ur_type": ur_type,
-            "launch_rviz": launch_rviz
-        }.items(),
-    )
 
     # -------------------------
     # Global shutdown on any process exit
@@ -141,7 +114,5 @@ def generate_launch_description():
         static_base_world,
         transform_ball_pose_node,
         transform_wrist_pose_node,
-        ik_node,
-        moveit_launch,
         shutdown_on_any_exit
     ])

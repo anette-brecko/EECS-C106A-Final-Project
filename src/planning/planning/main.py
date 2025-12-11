@@ -90,14 +90,16 @@ class UR7e_BallGraspAndLaunch(Node):
             self.get_logger().info("No joint state yet, cannot proceed")
             return
 
+        self.ball_pose = ball_pose
+
         # 1) Move to Pre-Grasp Position (gripper above the ball)
         # TODO: Ball offsets!!!
-        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y - 0.035, ball_pose.point.z + 0.185)
+        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.185)
         self.job_queue.append(pre_grasp_state)
 
         # 2) Move to Grasp Position (lower the gripper to the ball)
         # TODO: Ball offsets!!!
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y - 0.035, ball_pose.point.z + 0.158)
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.158)
         self.job_queue.append(grasp_state)
 
         # 3) Close the gripper. See job_queue entries defined in init above for how to add this action.
@@ -121,9 +123,6 @@ class UR7e_BallGraspAndLaunch(Node):
         # 5) Launch Ball
         throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, target_pose, 50, 1.5)
         self.job_queue.append((throwing_trajectory, t_release))
-
-        # 6) Release the gripper
-        self.job_queue.append('toggle_grip')
 
         self.job_queue.append(self.launch_state)
         self.execute_jobs()

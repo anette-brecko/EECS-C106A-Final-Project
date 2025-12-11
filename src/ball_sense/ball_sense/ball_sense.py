@@ -86,6 +86,12 @@ class HSVFilterNode(Node):
         # Create mask
         mask = cv2.inRange(hsv, lower, upper)
 
+        kernel = np.ones((5,5),np.uint8)
+
+        opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
+        mask = closing
+
         # Apply mask to original BGR image
         filtered = cv2.bitwise_and(frame, frame, mask=mask)
 
@@ -118,10 +124,10 @@ class HSVFilterNode(Node):
 
             point_cam = PointStamped()
             point_cam.header.stamp = msg.header.stamp
-            point_cam.header.frame_id = 'logitech'
-            point_cam.point.x = goal_point[0]
-            point_cam.point.y = goal_point[1]
-            point_cam.point.z = goal_point[2]
+            point_cam.header.frame_id = 'camera1'
+            point_cam.point.x = X
+            point_cam.point.y = Y
+            point_cam.point.z = Z
             print("point: ", X, Y, Z)
             self.ball_position_pub.publish(point_cam)
         else:

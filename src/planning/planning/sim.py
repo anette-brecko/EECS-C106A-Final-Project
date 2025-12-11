@@ -34,7 +34,7 @@ def main():
     # Generate example trajectory
     start_cfg = default_cfg
     target_pos = np.array([-0.3, 2.0, .7])
-    time_horizon = 1.19
+    time_horizon = 1.5
     timesteps = 50
     dt = time_horizon / timesteps
 
@@ -57,7 +57,7 @@ def main():
                     robot_max_reach=0.85 * 0.8, # max 
                     max_vel=7, 
                     num_samples=50,
-                    num_samples_iterated=10,
+                    num_samples_iterated=4,
                 )
                 traj, t_release, t_target = solutions.pop(0)
             case "next" if solutions:
