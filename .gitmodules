@@ -1,0 +1,3 @@
+[submodule "src/kinect_v2_ros2_wrapper"]
+	path = src/kinect_v2_ros2_wrapper
+	url = https://github.com/jsb19227/kinect_v2_ros2_wrapper

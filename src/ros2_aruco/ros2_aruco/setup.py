@@ -21,7 +21,11 @@ setup(
     maintainer_email='nathan.r.sprague@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
-    tests_require=['pytest'],
+        extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
         'console_scripts': [
             'aruco_node = ros2_aruco.aruco_node:main',

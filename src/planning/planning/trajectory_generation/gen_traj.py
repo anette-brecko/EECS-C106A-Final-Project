@@ -13,12 +13,12 @@ from .jacobian import compute_ee_spatial_jacobian
 
 import os
 
-os.environ["JAX_PLATFORM_NAME"] = "cpu"
-jax.config.update('jax_num_cpu_devices', 24)
-# jax.config.update("jax_logging_level", "WARNING")
-# jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
-# jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
-# jax.config.update("jax_explain_cache_misses", True)
+os.environ["JAX_PLATFORM_NAME"] = "gpu"
+# jax.config.update('jax_num_cpu_devices', 24)
+jax.config.update("jax_logging_level", "WARNING")
+jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
+jax.config.update("jax_persistent_cache_enable_xla_caches", "all")
+jax.config.update("jax_explain_cache_misses", True)
 
 class TimeVar(
     jaxls.Var[Array],
@@ -273,7 +273,7 @@ def _build_problem_safety(
     return jaxls.LeastSquaresProblem(factors, [traj_vars, time_release_var, time_target_var, start_var, target_pos_var]).analyze()
 
 
-@jax.jit
+#@jax.jit
 def _build_problem(
     robot: pk.Robot,
     robot_coll: pk.collision.RobotCollision,

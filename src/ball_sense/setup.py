@@ -11,13 +11,17 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools','numpy'],
     zip_safe=True,
     maintainer='ee106a-aal',
     maintainer_email='jared.haertel@berkeley.edu',
     description='TODO: Package description',
     license='TODO: License declaration',
-    tests_require=['pytest'],
+    extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
         'console_scripts': [
             'ball_sense = ball_sense.ball_sense:main'

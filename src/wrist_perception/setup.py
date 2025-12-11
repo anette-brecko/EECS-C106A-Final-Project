@@ -1,13 +1,13 @@
 from setuptools import setup
 
-package_name = 'kinect2_python_subscriber'
+package_name = 'wrist_perception'
 
 setup(
     name=package_name,
     version='0.0.0',
     packages=[package_name],
     data_files=[
-        ('share/ament_index/resource_index/ament_package',
+        ('share/ament_index/resource_index/packages',
          ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
@@ -17,10 +17,14 @@ setup(
     maintainer_email='your_email@example.com',
     description='ROS2 package to subscribe to Kinect2 RGB and Depth data',
     license='Apache-2.0',
-    tests_require=['pytest'],
+    extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
         'console_scripts': [
-            'kinect_subscriber = kinect2_python_subscriber.kinect_subscriber:main',
+            'target_poser = wrist_perception.target_poser:main'
         ],
     },
 )
