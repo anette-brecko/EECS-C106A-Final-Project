@@ -116,17 +116,9 @@ class HSVFilterNode(Node):
             Y = ((v - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
             Z = depth
 
-            # Convert to turtlebot frame
-            # There's no camera frame for the turtlebots, so we just do this instead 
-            G = np.array([[0, 0, 1, 0.115],
-                [-1, 0, 0, 0],
-                [0, -1, 0, 0],
-                [0, 0, 0, 1]])
-            goal_point = (G @ np.array([X, Y, Z, 1]).reshape(4, 1)).flatten()
-
             point_cam = PointStamped()
             point_cam.header.stamp = msg.header.stamp
-            point_cam.header.frame_id = 'base_link'
+            point_cam.header.frame_id = 'logitech'
             point_cam.point.x = goal_point[0]
             point_cam.point.y = goal_point[1]
             point_cam.point.z = goal_point[2]

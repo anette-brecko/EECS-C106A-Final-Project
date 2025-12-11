@@ -308,37 +308,7 @@ def _build_problem(
             robot_batched,
             traj_vars,
             jnp.array([target_link_index]),
-            jnp.array([1.0 def compute_world_coll_residual(
-        vals: jaxls.VarValues,
-        robot: pk.Robot,
-        robot_coll: pk.collision.RobotCollision,
-        world_coll_obj: pk.collision.CollGeom,
-        prev_traj_vars: jaxls.Var[jax.Array],
-        curr_traj_vars: jaxls.Var[jax.Array],
-    ):
-        coll = robot_coll.get_swept_capsules(
-            robot, vals[prev_traj_vars], vals[curr_traj_vars]
-        )
-        dist = pk.collision.collide(
-            coll.reshape((-1, 1)), world_coll_obj.reshape((1, -1))
-        )
-        colldist = pk.collision.colldist_from_sdf(dist, 0.1)
-        return (colldist * 20.0).flatten()
-    
-    for world_coll_obj in world_coll:
-        factors.append(
-            jaxls.Cost(
-                compute_world_coll_residual,
-                (
-                    robot_batched,
-                    robot_coll_batched,
-                    jax.tree.map(lambda x: x[None], world_coll_obj),
-                    robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-                    robot.joint_var_cls(jnp.arange(1, timesteps)),
-                ),
-                name="World Collision (sweep)",
-            )
-        )/ timesteps])[None]
+            jnp.array([0.001 / timesteps])[None]
         )
     ]
 

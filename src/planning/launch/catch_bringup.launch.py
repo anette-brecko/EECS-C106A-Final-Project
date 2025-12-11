@@ -20,10 +20,9 @@ def generate_launch_description():
                 'camera.launch.py'
             )
         ),
-        launch_arguments={ # TODO: IDk if you need these
-            #'pointcloud.enable': 'true',
-            'rgb_camera.color_profile': '1920x1080x30',
-        }.items(),
+        # launch_arguments={ # TODO: IDk if you need these
+        #     'rgb_camera.color_profile': '1920x1080x30',
+        # }.items(),
     )
     # Perception node for logitech
     perception_node = Node(
@@ -31,14 +30,6 @@ def generate_launch_description():
         executable='ball_sense',
         name='ball_sense',
         output='screen',
-
-        # Our HSV parametrs are set in ball_sense, shouldn't change too much from those vals
-        # parameters=[{
-        #     'plane.a': plane_a,
-        #     'plane.b': plane_b,
-        #     'plane.c': plane_c,
-        #     'plane.d': plane_d,
-        # }]
     )
 
     # ArUco recognition
@@ -76,10 +67,17 @@ def generate_launch_description():
         output='screen',
     )
 
-    transform_cube_pose_node = Node(
+    transform_ball_pose_node = Node(
         package='planning',
-        executable='transform_cube_pose',
-        name='transform_cube_pose_node',
+        executable='transform_ball_pose',
+        name='transform_ball_pose_node',
+        output='screen',
+    )
+
+    transform_wrist_pose_node = Node(
+        package='planning',
+        executable='transform_wrist_pose',
+        name='transform_wrist_pose_node',
         output='screen',
     )
 
@@ -141,7 +139,8 @@ def generate_launch_description():
         kinect_tf_node,
         aruco_tf_node,
         static_base_world,
-        transform_cube_pose_node,
+        transform_ball_pose_node,
+        transform_wrist_pose_node,
         ik_node,
         moveit_launch,
         shutdown_on_any_exit

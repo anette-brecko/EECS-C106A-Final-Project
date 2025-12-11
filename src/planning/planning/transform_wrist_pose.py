@@ -7,37 +7,37 @@ from scipy.spatial.transform import Rotation
 
 import numpy as np
 
-class TransformBallPose(Node):
+class TransformWristPose(Node):
     def __init__(self):
-        super().__init__('transform_ball_pose')
+        super().__init__('transform_wrist_pose')
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        self.ball_pose_sub = self.create_subscription(
+        self.wrist_pose_sub = self.create_subscription(
             PointStamped,
-            '/ball_pose',
-            self.ball_pose_callback,
+            '/target_point',
+            self.wrist_pose_callback,
             10
         )
 
-        self.ball_pose_pub = self.create_publisher(PointStamped, '/ball_pose_base', 1)
+        self.wrist_pose_pub = self.create_publisher(PointStamped, '/wrist_pose', 1)
 
         rclpy.spin_once(self, timeout_sec=2)
-        self.ball_pose = None
+        self.wrist_pose = None
 
-    def ball_pose_callback(self, msg: PointStamped):
-        if self.ball_pose is None:
-            self.ball_pose = self.transform_ball_pose(msg)
+    def wrist_pose_callback(self, msg: PointStamped):
+        if self.wrist_pose is None:
+            self.wrist_pose = self.transform_wrist_pose(msg)
         else:
-            self.balll_pose_pub.publish(self.ball_pose)
+            self.wristl_pose_pub.publish(self.wrist_pose)
 
 
-    def transform_ball_pose(self, msg: PointStamped):
+    def transform_wrist_pose(self, msg: PointStamped):
         """ 
         Transform point into base_link frame
         Args: 
-            - msg: PointStamped - The message from /ball_pose, of the position of the ball in camera_depth_optical_frame
+            - msg: PointStamped - The message from /wrist_pose, of the position of the wrist in camera_depth_optical_frame
         Returns:
             Point: point in base_link_frame in form [x, y, z]
         """
@@ -58,23 +58,23 @@ class TransformBallPose(Node):
             g[0:3, 0:3] = R
             g[:3, 3] = np.array([translation.x, translation.y, translation.z])
 
-            ball_hom = np.array([msg.point.x, msg.point.y, msg.point.z, 1])
-            ball_base = g @ ball_hom.T
+            wrist_hom = np.array([msg.point.x, msg.point.y, msg.point.z, 1])
+            wrist_base = g @ wrist_hom.T
 
-            ball_pose = PointStamped()            
+            wrist_pose = PointStamped()            
             # Fill in message
-            ball_pose.header.stamp = self.get_clock().now().to_msg()
-            ball_pose.header.frame_id = "base_link"
+            wrist_pose.header.stamp = self.get_clock().now().to_msg()
+            wrist_pose.header.frame_id = "base_link"
             
-            ball_pose.point.x, ball_pose.point.y, ball_pose.point.z, _ = [float(x_i) for x_i in ball_base]
+            wrist_pose.point.x, wrist_pose.point.y, wrist_pose.point.z, _ = [float(x_i) for x_i in wrist_base]
 
-            return ball_pose
+            return wrist_pose
         except:
             return None
         
 def main(args=None):
     rclpy.init(args=args)
-    node = TransformBallPose()
+    node = TransformWristPose()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
