@@ -129,13 +129,12 @@ class ArucoNode(rclpy.node.Node):
             ),
         )
 
-
         self.marker_size = (
             self.get_parameter("marker_size").get_parameter_value().double_value
         )
         self.get_logger().info(f"Marker size: {self.marker_size}")
         
-        self.marker_size_map = {1: 0.15, 2: 0.15, 3: 0.15, 4: 0.15, 5: 0.15, 11: 0.15, 
+        self.marker_size_map = {1: .05, 2: 0.05, 3: 0.05, 4: 0.05, 5: 0.05, 11: 0.05, 
                                 6: 0.15, 7: 0.15, 8: 0.15, 9: 0.15, 10: 0.15}
         self.get_logger().info(f"Marker size map for marker ids is: {self.marker_size_map}")
 
@@ -157,7 +156,6 @@ class ArucoNode(rclpy.node.Node):
         self.camera_frame = (
             self.get_parameter("camera_frame").get_parameter_value().string_value
         )
-        self.get_logger().info(f"Camera frame: {self.camera_frame}")
 
         # Make sure we have a valid dictionary id:
         try:
@@ -298,14 +296,11 @@ class ArucoNode(rclpy.node.Node):
                 if self.camera_frame == "":
                     # Note the info_msg header is better practice just testing this
                     # transform.header.frame_id = self.info_msg.header.frame_id
-                    # transform.header.frame_id = "camera1"
-                    transform.header.frame_id = f"ar_marker_{marker_id[0]}"
+                    transform.header.frame_id = "camera1"
                 else:
                     transform.header.frame_id = self.camera_frame
-                # transform.child_frame_id = f"ar_marker_{marker_id[0]}"
-                transform.child_frame_id = "camera1"
+                transform.child_frame_id = f"ar_marker_{marker_id[0]}"
                 
-
                 transform.transform.translation.x = pose.position.x
                 transform.transform.translation.y = pose.position.y
                 transform.transform.translation.z = pose.position.z
