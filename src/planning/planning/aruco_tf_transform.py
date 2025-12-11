@@ -26,7 +26,7 @@ class ArucoConstantTransformPublisher(Node):
         self.transform = TransformStamped()
         
         self.transform.child_frame_id = "base_link"
-        self.transform.header.frame_id = "ar_marker_6"
+        self.transform.header.frame_id = marker
 
         quat = R.from_matrix(G[0:3,0:3]).as_quat()
         

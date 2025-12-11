@@ -2,7 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.events import Shutdown
 from launch.actions import IncludeLaunchDescription  
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, EmitEvent
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, EmitEvent, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration
@@ -113,11 +113,20 @@ def generate_launch_description():
     # -------------------------
     # Global shutdown on any process exit
     # -------------------------
-    shutdown_on_any_exit = RegisterEventHandler(
+    shutdown_on_kinect_death = RegisterEventHandler(
         OnProcessExit(
-            on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
+            target_action=kinect_node,  # <--- CRITICAL CHANGE HERE
+            on_exit=[
+                LogInfo(msg='Kinect driver died! Shutting down system...'),
+                EmitEvent(event=Shutdown(reason='Kinect Crashed'))
+            ]
         )
     )
+    # shutdown_on_any_exit = RegisterEventHandler(
+    #     OnProcessExit(
+    #         on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
+    #     )
+    # )
     
     return LaunchDescription([
         ar_marker_launch_arg,
@@ -131,5 +140,6 @@ def generate_launch_description():
         static_base_world,
         transform_ball_pose_node,
         transform_wrist_pose_node,
-        shutdown_on_any_exit
+        shutdown_on_kinect_death,
+        # shutdown_on_any_exit
     ])
