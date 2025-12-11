@@ -207,6 +207,8 @@ class IKPlanner(Node):
 
         joint_traj.points[0] = start_point
         joint_traj.points.pop(1)
+        
+        self.get_logger().info(f'Max vel (for each joint): {np.max(velocities, axis=0)}')
 
         return joint_traj
         
@@ -262,8 +264,6 @@ class IKPlanner(Node):
                     timesteps, 
                     dt
                 )
-
-                
 
     def play_loaded_trajectory(self, filename: str):
         start_cfg, target_pos, traj, t_release, t_target, timesteps, dt = load_trajectory(filename)
