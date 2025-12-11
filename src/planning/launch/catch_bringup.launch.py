@@ -60,7 +60,7 @@ def generate_launch_description():
 
     ar_marker_launch_arg = DeclareLaunchArgument(
         'ar_marker',
-        default_value='ar_marker_6' # TODO: Change to our desried ar_marker
+        default_value='ar_marker_10' # TODO: Change to our desried ar_marker
     )
     ar_marker = LaunchConfiguration('ar_marker')
 

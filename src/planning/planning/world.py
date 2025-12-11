@@ -20,7 +20,7 @@ class World:
         self.target_link_name = target_link_name
 
         # Table parameters
-        self.table_width = 0.3 # Along y-axis
+        self.table_width = 0.6 # Along y-axis
         self.table_length = 2.0 # Along x-axis
         self.table_height = 0.7366
         self.table_offset = np.array([0.0, 0.4, -0.18]) # As measured by center of the edge of the table

@@ -69,6 +69,8 @@ class IKPlanner(Node):
 
         self.world = World(self.robot, urdf, self.target_link_name) 
 
+        self.speed = 1.0
+
 
     # -----------------------------------------------------------
     # Compute IK for a given (x, y, z) + quat and current robot joint state
@@ -149,7 +151,6 @@ class IKPlanner(Node):
 
     def _solve_to_target(self, start_cfg, target_pos, timesteps, dt):
         """ Solve the trajectory problem """
-        world_coll = self.world.gen_world_coll()
         return solve_by_sampling(
             self.robot,
             self.robot_coll,
@@ -159,13 +160,13 @@ class IKPlanner(Node):
             target_pos,
             timesteps,
             dt,
-            50,
+            7,
             0.85 * 0.8, 
-            100,
+            300,
             10,
         )
     
-    def _trajectory_points_to_msg(self, traj_points, dt) -> JointTrajectory:
+    def _trajectory_points_to_msg(self, start_cfg, traj_points, dt) -> JointTrajectory:
         """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
         
         # 2. Initialize the JointTrajectory (the core of the message)
@@ -178,7 +179,15 @@ class IKPlanner(Node):
 
         time_from_start = 0.0
 
-        velocities = self._estimate_gradients(traj_points, dt) / 10.0
+        start_point = JointTrajectoryPoint()
+        start_point.positions = start_cfg.tolist()
+        start_point.velocities = [0.0] * len(start_cfg)
+        start_point.accelerations = [0.0] * len(start_cfg)
+        start_point.time_from_start.sec = 0
+        start_point.time_from_start.nanosec = 0
+
+        velocities = self._estimate_gradients(traj_points, dt) * self.speed
+
         
         # 3. Iterate through trajectory points
         for i, q in enumerate(traj_points):
@@ -190,11 +199,14 @@ class IKPlanner(Node):
             #point.accelerations = [0.0] * len(q)
             
             # Time when this point should be reached
-            time_from_start += dt * 10 
+            time_from_start += dt / self.speed
             point.time_from_start.sec = int(time_from_start)
             point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
             
             joint_traj.points.append(point)
+
+        joint_traj.points[0] = start_point
+        joint_traj.points.pop(1)
 
         return joint_traj
         
@@ -239,7 +251,7 @@ class IKPlanner(Node):
                             timesteps,
                             dt
                         )
-                    return self._trajectory_points_to_msg(traj, dt), t_release
+                    return self._trajectory_points_to_msg(start_cfg, traj, dt), t_release
 
             status = self.world.visualize_all(
                     start_cfg, 
@@ -259,7 +271,7 @@ class IKPlanner(Node):
         # Visualize
         self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
 
-        return self._trajectory_points_to_msg(np.array(traj), dt), t_release
+        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release
 
     def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
         """ Convert JointState to configuration vector """

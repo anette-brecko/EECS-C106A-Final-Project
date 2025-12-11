@@ -1,7 +1,7 @@
 # these are the params we use for 106A Lab 4
 /**:
     ros__parameters:
-      video_device: "/dev/video1"
+      video_device: "/dev/video0"
       framerate: 30.0
       io_method: "mmap"
       camera_name: "camera1"

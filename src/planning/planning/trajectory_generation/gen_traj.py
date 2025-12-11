@@ -371,7 +371,7 @@ def _build_problem(
         [
             jaxls.Cost(
                 lambda vals, var: ((vals[var] - start_cfg) * 100.0).flatten(),
-                (robot.joint_var_cls(jnp.arange(0, 2)),),
+                (robot.joint_var_cls(jnp.arange(0, 1)),),
                 name="start_pose_constraint",
             ),
             terminal_velocity_limit_cost(
@@ -388,11 +388,6 @@ def _build_problem(
     # Velocity / acceleration / jerk minimization.
     factors.extend(
         [
-            pk.costs.smoothness_cost(
-                robot.joint_var_cls(jnp.arange(1, timesteps)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-                jnp.array([2.5 / timesteps])[None],
-            ),
             pk.costs.five_point_velocity_cost(
                 robot_batched,
                 robot.joint_var_cls(jnp.arange(4, timesteps)),
@@ -502,7 +497,7 @@ def _build_problem(
         
         # Target position (passed from outside, you might need to add it to args or closure)
         # For now assuming target_position is available in closure as `target_position`
-        return jnp.concatenate(pos_error, align_error)
+        return jnp.concatenate([pos_error, align_error])
         
     @jaxls.Cost.create_factory(name="positive_time_cost")
     def positive_time_cost(
