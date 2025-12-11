@@ -40,7 +40,7 @@ class ArucoConstantTransformPublisher(Node):
         self.transform.transform.rotation.w = quat[3]
 
 
-        self.timer = self.create_timer(0.05, self.broadcast_tf)
+        self.timer = self.create_timer(0.01, self.broadcast_tf)
 
     def broadcast_tf(self):
         self.transform.header.stamp = self.get_clock().now().to_msg()

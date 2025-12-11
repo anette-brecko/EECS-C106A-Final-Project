@@ -29,7 +29,8 @@ class UR7e_BallGrasp(Node):
         self.gripper_cli = self.create_client(Trigger, '/toggle_gripper')
 
         self.ik_planner = IKPlanner()
-
+        self.ball_pose = None
+        self.joint_state = None
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
     def joint_state_callback(self, msg: JointState):
@@ -42,6 +43,8 @@ class UR7e_BallGrasp(Node):
         if self.joint_state is None:
             self.get_logger().info("No joint state yet, cannot proceed")
             return
+        
+        self.ball_pose = ball_pose
 
         # 1) Move to Pre-Grasp Position (gripper above the ball)
         # TODO: Ball offsets!!!
@@ -64,7 +67,7 @@ class UR7e_BallGrasp(Node):
     def execute_jobs(self):
         if not self.job_queue:
             self.get_logger().info("All jobs completed.")
-            #rclpy.shutdown()
+            rclpy.shutdown()
             return
 
         self.get_logger().info(f"Executing job queue, {len(self.job_queue)} jobs remaining.")

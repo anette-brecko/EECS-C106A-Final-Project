@@ -32,6 +32,21 @@ def generate_launch_description():
         output='screen',
     )
 
+    kinect_node = Node(
+        package='kinect_v2_driver',
+        executable='kinect2_node',
+        name='kinect2_node',
+        output='screen'
+    )
+
+    wrist_node = Node(
+        package='wrist_perception',
+        executable='target_poser',
+        name='target_poser',
+        output='screen'
+    )
+
+
     # ArUco recognition
     aruco_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -135,6 +150,8 @@ def generate_launch_description():
         ar_marker_launch_arg,
         logitech_launch,
         aruco_launch,
+        kinect_node,
+        wrist_node,
         perception_node,
         kinect_tf_node,
         aruco_tf_node,

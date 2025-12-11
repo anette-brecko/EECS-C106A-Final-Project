@@ -13,8 +13,11 @@ import pyroki as pk
 
 from .trajectory_generation.generate_samples import solve_by_sampling
 from .world import World
-from .load_urdf import load_ur7e_with_gripper
+from .load_urdf import load_ur7e_with_gripper, UR7eJointVar
+import jax_dataclasses as jdc
 from .trajectory_generation.save_and_load import save_trajectory, load_trajectory
+
+import jax.numpy as jnp
 
 
 # Example usage:
@@ -53,13 +56,15 @@ class IKPlanner(Node):
         # ----- PyRoki setup -----
         #urdf_path = "/opt/ros/humble/share/ur_description/urdf/ur.urdf.xacro"
 
-        urdf = load_ur7e_with_gripper()
-        #urdf = load_robot_description("ur5_description")
+        urdf = load_ur7e_with_gripper()    
         self.robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
         default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141])
         self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
+        UR7eJointVar.default_factory = staticmethod(lambda: jnp.array(default_cfg))
+
+        self.robot = jdc.replace(self.robot, joint_var_cls=UR7eJointVar)
         self.target_link_name = "robotiq_hande_end"
 
         self.world = World(self.robot, urdf, self.target_link_name) 
@@ -154,7 +159,7 @@ class IKPlanner(Node):
             target_pos,
             timesteps,
             dt,
-            10,
+            50,
             0.85 * 0.8, 
             100,
             10,
@@ -206,10 +211,10 @@ class IKPlanner(Node):
             match status:
                 case "regenerate" | "next" if not solutions:
                     solutions = solve_by_sampling(
-                        robot,
-                        robot_coll,
-                        world.gen_world_coll(),
-                        target_link_name,
+                        self.robot,
+                        self.robot_coll,
+                        self.world.gen_world_coll(),
+                        self.target_link_name,
                         start_cfg,
                         target_pos,
                         timesteps,
@@ -236,7 +241,7 @@ class IKPlanner(Node):
                         )
                     return self._trajectory_points_to_msg(traj, dt), t_release
 
-            status = world.visualize_all(
+            status = self.world.visualize_all(
                     start_cfg, 
                     target_pos, 
                     traj, 

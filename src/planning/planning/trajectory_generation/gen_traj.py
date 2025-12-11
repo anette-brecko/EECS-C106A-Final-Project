@@ -18,8 +18,8 @@ import os
 os.environ["JAX_PLATFORM_NAME"] = "gpu"
 #jax.config.update('jax_num_cpu_devices', 24)
 # jax.config.update("jax_logging_level", "WARNING")
-jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
-jax.config.update("jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir")
+# jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
+# jax.config.update("jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir")
 # jax.config.update("jax_explain_cache_misses", True)
 
 class TimeVar(
@@ -296,21 +296,10 @@ def _build_problem(
 
     # Basic regularization / limit costs.
     factors: list[jaxls.Cost] = [
-        pk.costs.rest_cost(
-            traj_vars,
-            traj_vars.default_factory()[None],
-            jnp.array([0.0001])[None],
-        ),
         pk.costs.limit_cost(
             robot_batched,
             traj_vars,
             jnp.array([100.0])[None],
-        ),
-        pk.costs.manipulability_cost(
-            robot_batched,
-            traj_vars,
-            jnp.array([target_link_index]),
-            jnp.array([0.001 / timesteps])[None]
         )
     ]
 
@@ -386,11 +375,11 @@ def _build_problem(
                 name="start_pose_constraint",
             ),
             terminal_velocity_limit_cost(
-                robot.joint_var_cls(jnp.arange(timesteps-6, timesteps)),
-                robot.joint_var_cls(jnp.arange(timesteps-7, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(timesteps-8, timesteps - 2)),
-                robot.joint_var_cls(jnp.arange(timesteps-9, timesteps - 3)),
-                robot.joint_var_cls(jnp.arange(timesteps-10, timesteps - 4)),
+                robot.joint_var_cls(jnp.arange(timesteps-3, timesteps)),
+                robot.joint_var_cls(jnp.arange(timesteps-4, timesteps - 1)),
+                robot.joint_var_cls(jnp.arange(timesteps-5, timesteps - 2)),
+                robot.joint_var_cls(jnp.arange(timesteps-6, timesteps - 3)),
+                robot.joint_var_cls(jnp.arange(timesteps-7, timesteps - 4)),
                 dt
             ),
         ]
@@ -495,10 +484,25 @@ def _build_problem(
         gravity_vec = jnp.array([0.0, 0.0, -g]) 
         
         pred_pos = x0 + v0 * delta_t + 0.5 * gravity_vec * (delta_t ** 2)
+
+        pos_error = ((pred_pos - target_pos) * 300.0).flatten()
+
+        R_ee = jaxlie.SE3(jnp.take(q, target_link_index, axis=-2)[..., :4])
+        y_ee = R_ee.rotation() @ jnp.array([0.0, 1.0, 0.0])
+         
+        # Get launch velocity
+        jacobian = compute_ee_spatial_jacobian(robot, q_release, jnp.array([target_link_index]))
+        twist = jacobian @ q_dot_release.squeeze()
+        v0 = twist[:3][None]
+
+        v_norm = jnp.linalg.norm(v0) + 1e-6
+        v_dir = v0 / v_norm
+
+        align_error = ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
         
         # Target position (passed from outside, you might need to add it to args or closure)
         # For now assuming target_position is available in closure as `target_position`
-        return ((pred_pos - target_pos) * 300.0).flatten()
+        return jnp.concatenate(pos_error, align_error)
         
     @jaxls.Cost.create_factory(name="positive_time_cost")
     def positive_time_cost(
@@ -534,64 +538,6 @@ def _build_problem(
         return  jnp.append(err * 100.0,  err_from_intended * 0.1)
 
 
-    @jaxls.Cost.create_factory(name="toss_alignment_cost")
-    def toss_alignment_cost(
-        vals: jaxls.VarValues,
-        traj_vars_tuple: tuple[jaxls.Var[jax.Array], ...],
-        time_release: TimeVar,
-    ):
-        """Want the z-axis to lie tangent to launch trajectory for smooth flight."""
-        t_rel = vals[time_release].squeeze()
-        
-        idx_float = t_rel / dt
-        
-        # Get the integer bounds for interpolation
-        # Clamp to ensure we don't go out of bounds [0, timesteps-2]
-        # We use -2 because we need a "next" neighbor for velocity calculation
-        max_idx = vals[traj_vars].shape[0] - 2
-        idx_floor = jnp.clip(jnp.floor(idx_float).astype(int), 0, max_idx)
-        idx_ceil = idx_floor + 1
-        
-        alpha = idx_float - idx_floor
-        
-        # 3. Retrieve discrete joint configurations
-        qs_list = [vals[v] for v in traj_vars_tuple]
-        qs_full = jnp.stack(qs_list)
-
-        q_prev = qs_full[idx_floor - 1]
-        q_curr = qs_full[idx_floor]     # q at t_floor
-        q_next = qs_full[idx_ceil]      # q at t_ceil
-        q_next_next = qs_full[idx_ceil + 1]
-
-        # --- 3. Interpolate Position (Still Linear) ---
-        q_release = (1.0 - alpha) * q_curr + alpha * q_next
-
-        # --- 4. Interpolate Central Difference Velocity ---
-        # Velocity at q_curr (t_floor) using central difference: (q_next - q_prev) / 2*dt
-        q_dot_floor = (q_next - q_prev) / (2.0 * dt)
-
-        # Velocity at q_next (t_ceil) using central difference: (q_next_next - q_curr) / 2*dt
-        q_dot_ceil = (q_next_next - q_curr) / (2.0 * dt) 
-
-        # Linear interpolation of the two velocity estimates
-        q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
-
-        # Get starting position of launch
-        q = robot.forward_kinematics(q_release)
-        R_ee = jaxlie.SE3(jnp.take(q, target_link_index, axis=-2)[..., :4])
-        y_ee = R_ee.rotation() @ jnp.array([0.0, 1.0, 0.0])
-         
-        # Get launch velocity
-        jacobian = compute_ee_spatial_jacobian(robot, q_release, jnp.array([target_link_index]))
-        twist = jacobian @ q_dot_release.squeeze()
-        v0 = twist[:3][None]
-
-        v_norm = jnp.linalg.norm(v0) + 1e-6
-        v_dir = v0 / v_norm
-
-        return ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
- 
-
     factors.extend(
         [
             positive_time_cost(time_release_var, time_target_var),
@@ -599,10 +545,6 @@ def _build_problem(
                 tuple(traj_vars[i] for i in range(timesteps)), 
                 time_release_var, 
                 time_target_var
-            ),
-            toss_alignment_cost(
-                tuple(traj_vars[i] for i in range(timesteps)), 
-                time_release_var
             )
         ]
     ) 

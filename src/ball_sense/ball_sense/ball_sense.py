@@ -10,6 +10,7 @@ from geometry_msgs.msg import PointStamped
 import cv2
 import numpy as np
 from ament_index_python.packages import get_package_share_directory
+from scipy import ndimage
 
 
 class HSVFilterNode(Node):
@@ -45,7 +46,7 @@ class HSVFilterNode(Node):
         # Publishers
         self.mask_pub = self.create_publisher(Image, "hsv_mask", 10)
         self.filtered_pub = self.create_publisher(Image, "hsv_filtered", 10)
-        self.ball_position_pub = self.create_publisher(PointStamped, '/goal_point', 1)
+        self.ball_position_pub = self.create_publisher(PointStamped, '/ball_pose', 1)
 
         self.camera_intrinsics = None
 
@@ -53,16 +54,17 @@ class HSVFilterNode(Node):
         self.get_logger().info("HSV Filter Node started!")
 
     def camera_info_callback(self, msg):
-        # self.get_logger().info("Recieved Camera Info")
-        fx = msg.k[0]
-        fy = msg.k[4]
-        cx = msg.k[2]
-        cy = msg.k[5]
-        self.camera_intrinsics = [fx, fy, cx, cy]
+        if self.camera_intrinsics is None:
+            self.get_logger().info("Recieved Camera Info")
+            fx = msg.k[0]
+            fy = msg.k[4]
+            cx = msg.k[2]
+            cy = msg.k[5]
+            self.camera_intrinsics = [fx, fy, cx, cy]
 
     def image_callback(self, msg):
         if self.camera_intrinsics is None:
-            print("camera is none")
+            self.get_logger().info('Camera is none.')
             return
 
         # Convert ROS2 image → OpenCV BGR image
@@ -113,9 +115,10 @@ class HSVFilterNode(Node):
             # self.get_logger().info(f'Ball {i+1}: depth={depth:.3f}m')
 
             # TODO: Get u, and v of ball in image coordinates
-            non_zero_mask_x,non_zero_mask_y  = np.nonzero(mask)
-            u = np.mean(non_zero_mask_x)
-            v = np.mean(non_zero_mask_y)
+            # non_zero_mask_x, non_zero_mask_y  = np.nonzero(mask)
+            # u = np.mean(non_zero_mask_x)
+            # v = np.mean(non_zero_mask_y)
+            u, v = ndimage.center_of_mass(mask)
 
             # TODO: Find X , Y , Z of ball
             X = ((u - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
@@ -128,7 +131,7 @@ class HSVFilterNode(Node):
             point_cam.point.x = X
             point_cam.point.y = Y
             point_cam.point.z = Z
-            print("point: ", X, Y, Z)
+            self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
             self.ball_position_pub.publish(point_cam)
         else:
             self.get_logger().info('No balls spotted')

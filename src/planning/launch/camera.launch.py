@@ -24,6 +24,21 @@ def generate_launch_description():
         #     'rgb_camera.color_profile': '1920x1080x30',
         # }.items(),
     )
+
+    kinect_node = Node(
+        package='kinect_v2_driver',
+        executable='kinect2_node',
+        name='kinect2_node',
+        output='screen'
+    )
+
+    wrist_node = Node(
+        package='wrist_perception',
+        executable='target_poser',
+        name='target_poser',
+        output='screen'
+    )
+
     # Perception node for logitech
     perception_node = Node(
         package='ball_sense',
@@ -108,6 +123,8 @@ def generate_launch_description():
         ar_marker_launch_arg,
         logitech_launch,
         aruco_launch,
+        kinect_node,
+        wrist_node,
         perception_node,
         kinect_tf_node,
         aruco_tf_node,

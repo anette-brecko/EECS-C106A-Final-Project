@@ -13,19 +13,19 @@ class KinectConstantTransformPublisher(Node):
 
 
         # Homogeneous transform kinect->base_link
-        G = np.array([
-            [ 1, 0, 0, 0.0],
-            [ 0, 0, 1, 1.04],
-            [ 0, -1, 0, 0.24],
+        G = np.array([ 
+            [ 1, 0, 0, 0.65],
+            [ 0, 0, 1, 0.78],
+            [ 0, -1, 0, -0.225],
             [ 0, 0, 0, 1.0]
         ])
 
         # Create TransformStamped
         self.transform = TransformStamped()
         
-        self.transform.child_frame_id = "base_link"
-        self.transform.header.frame_id = "kinect"
-
+        self.transform.header.frame_id = "base_link"
+        self.transform.child_frame_id = "kinect"
+       
         quat = R.from_matrix(G[0:3,0:3]).as_quat()
         
         self.transform.transform.translation.x = G[0][3]
