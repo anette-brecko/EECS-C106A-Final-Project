@@ -56,6 +56,7 @@ class TrajectoryPlanner(Node):
         self.target_link_name = "robotiq_hande_end"
 
         self.world = World(self.robot, urdf, self.target_link_name) 
+        self.speed = 1.0
 
     def _warmup(self, timesteps):
         self.get_logger().info(f'Warmup jax')
@@ -119,20 +120,19 @@ class TrajectoryPlanner(Node):
         start_point.time_from_start.sec = 0
         start_point.time_from_start.nanosec = 0
 
-        velocities = self._estimate_gradients(traj_points, dt)
-
+        velocities = self._estimate_gradients(traj_points, dt) * self.speed
         
         # 3. Iterate through trajectory points
         for i, q in enumerate(traj_points):
             point = JointTrajectoryPoint()
             
             # Position: The core joint configuration (Q)
-            point.positions = q.tolist()
+            point.positions = q.tolist() 
             point.velocities = velocities[i].tolist()
             #point.accelerations = [0.0] * len(q)
             
             # Time when this point should be reached
-            time_from_start += dt
+            time_from_start += dt /  self.speed
             point.time_from_start.sec = int(time_from_start)
             point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
             
@@ -208,7 +208,7 @@ class TrajectoryPlanner(Node):
         # Visualize
         self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
 
-        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release, start_cfg
+        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release, self._cfg_to_joint_state(start_cfg)
 
     def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
         """ Convert JointState to configuration vector """
@@ -218,6 +218,16 @@ class TrajectoryPlanner(Node):
                 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
         ]
         return np.array([data_dict[name] for name in target_joint_names])
+
+    def _cfg_to_joint_state(self, cfg: np.ndarray) -> JointState:
+        """ Convert JointState to configuration vector """
+        joint_state = JointState()
+        joint_state.name = [
+                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+        ]
+        joint_state.position = cfg.tolist()
+        return joint_state
    
     def _estimate_gradients(self, data: np.ndarray, dt: float) -> np.ndarray:
         """

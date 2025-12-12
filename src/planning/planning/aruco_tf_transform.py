@@ -22,11 +22,13 @@ class ArucoConstantTransformPublisher(Node):
             [ 0, 0, 0, 1.0]
         ])
 
+        # G = np.linalg.inv(G) THIS SHOULD BE HERE!!!
+
         # Create TransformStamped
         self.transform = TransformStamped()
         
-        self.transform.child_frame_id = marker
-        self.transform.header.frame_id = "base_link"
+        self.transform.child_frame_id = "base_link" 
+        self.transform.header.frame_id = marker
 
         quat = R.from_matrix(G[0:3,0:3]).as_quat()
         

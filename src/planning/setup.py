@@ -40,6 +40,7 @@ setup(
             'test = planning.test_launch:main',
             'tickle_balls = planning.test_grab:main',
             'replay = planning.replay_test:main',
+            'demo = planning.demo:main',
         ],
     },
 )

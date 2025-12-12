@@ -60,6 +60,8 @@ class World:
                 ),
             ),
         )
+
+        self.gen_world_coll()
                                    
         
     def visualize_tf(self, start_cfg, target_pos):

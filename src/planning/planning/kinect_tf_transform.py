@@ -14,9 +14,9 @@ class KinectConstantTransformPublisher(Node):
 
         # Homogeneous transform kinect->base_link
         G = np.array([ 
-            [ 1, 0, 0, 0.65],
-            [ 0, 0, 1, 0.78],
-            [ 0, -1, 0, -0.225],
+            [ 1, 0, 0, 0.0],
+            [ 0, 0, 1, 1.02],
+            [ 0, -1, 0, .23],
             [ 0, 0, 0, 1.0]
         ])
 
