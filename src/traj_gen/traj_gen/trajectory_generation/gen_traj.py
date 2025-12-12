@@ -120,158 +120,6 @@ def solve_static_trajopt(
         timesteps
     )
 
-def _build_problem_safety(
-    robot: pk.Robot,
-    robot_coll: pk.collision.RobotCollision,
-    world_coll: Sequence[pk.collision.CollGeom],
-    target_link_idx: int,
-    start_cfg: jnp.ndarray,
-    target_pos: jnp.ndarray,
-    timesteps: jdc.Static[int],
-    dt: float,
-    g: float = 9.81
-) -> jaxls.AnalyzedLeastSquaresProblem:
-    traj_vars = robot.joint_var_cls(jnp.arange(timesteps))
-    time_release_var = TimeVar(0)     
-    time_target_var = TimeVar(1)
-
-    robot_batched = jax.tree.map(lambda x: x[None], robot)
-    robot_coll_batched = jax.tree.map(lambda x: x[None], robot_coll)
-
-    # Basic regularization / limit costs.
-    factors: list[jaxls.Cost] = [
-        pk.costs.limit_cost(
-            robot_batched,
-            traj_vars,
-            jnp.array([100.0])[None],
-        ),
-    ]
-
-    # Collision avoidance.
-    def compute_world_coll_residual(
-        vals: jaxls.VarValues,
-        robot: pk.Robot,
-        robot_coll: pk.collision.RobotCollision,
-        world_coll_obj: pk.collision.CollGeom,
-        prev_traj_vars: jaxls.Var[jax.Array],
-        curr_traj_vars: jaxls.Var[jax.Array],
-    ):
-        coll = robot_coll.get_swept_capsules(
-            robot, vals[prev_traj_vars], vals[curr_traj_vars]
-        )
-        dist = pk.collision.collide(
-            coll.reshape((-1, 1)), world_coll_obj.reshape((1, -1))
-        )
-        colldist = pk.collision.colldist_from_sdf(dist, 0.1)
-        return (colldist * 20.0).flatten()
-
-    for world_coll_obj in world_coll:
-        factors.append(
-            jaxls.Cost(
-                compute_world_coll_residual,
-                (
-                    robot_batched,
-                    robot_coll_batched,
-                    jax.tree.map(lambda x: x[None], world_coll_obj),
-                    robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-                    robot.joint_var_cls(jnp.arange(1, timesteps)),
-                ),
-                name="World Collision (sweep)",
-            )
-        )
-
-    factors.append(
-        pk.costs.self_collision_cost(
-            robot_batched,
-            robot_coll_batched,
-            traj_vars,
-            0.005,
-            200.0 / timesteps,
-        )
-    )
-
-    @jaxls.Cost.create_factory(name="terminal_velocity_limit_cost")
-    def terminal_velocity_limit_cost(
-        vals: jaxls.VarValues,
-        var_t: jaxls.Var[Array],
-        var_t_minus_1: jaxls.Var[Array],
-        var_t_minus_2: jaxls.Var[Array],
-        var_t_minus_3: jaxls.Var[Array],
-        var_t_minus_4: jaxls.Var[Array],
-        dt: float,
-    ) -> Array:
-        """Computes the residual penalizing velocity limit violations (5-point stencil)."""
-        q_t   = vals[var_t]
-        q_tm1 = vals[var_t_minus_1]
-        q_tm2 = vals[var_t_minus_2]
-        q_tm3 = vals[var_t_minus_3]
-        q_tm4 = vals[var_t_minus_4]
-         
-        velocity = (25 * q_t - 48 * q_tm1 + 36 * q_tm2 - 16 * q_tm3 + 3 * q_tm4) / (12 * dt)
-        return (velocity * 20.0).flatten()
-    
-
-    factors.extend(
-        [
-            jaxls.Cost(
-                lambda vals, var: ((vals[var] - start_cfg) * 100.0).flatten(),
-                (robot.joint_var_cls(jnp.arange(0, 2)),),
-                name="start_pose_constraint",
-            ),
-            terminal_velocity_limit_cost(
-                robot.joint_var_cls(jnp.arange(timesteps-6, timesteps)),
-                robot.joint_var_cls(jnp.arange(timesteps-7, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(timesteps-8, timesteps - 2)),
-                robot.joint_var_cls(jnp.arange(timesteps-9, timesteps - 3)),
-                robot.joint_var_cls(jnp.arange(timesteps-10, timesteps - 4)),
-                dt
-            ),
-        ]
-    )
-
-    # Velocity / acceleration / jerk minimization.
-    factors.extend(
-        [
-            pk.costs.smoothness_cost(
-                robot.joint_var_cls(jnp.arange(1, timesteps)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-                jnp.array([2.5 / timesteps])[None],
-            ),
-            pk.costs.five_point_velocity_cost(
-                robot_batched,
-                robot.joint_var_cls(jnp.arange(4, timesteps)),
-                robot.joint_var_cls(jnp.arange(3, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 4)),
-                dt,
-                jnp.array([50.0 / timesteps])[None],
-            ),
-            pk.costs.five_point_acceleration_cost(
-                robot.joint_var_cls(jnp.arange(2, timesteps - 2)),
-                robot.joint_var_cls(jnp.arange(4, timesteps)),
-                robot.joint_var_cls(jnp.arange(3, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 4)),
-                dt,
-                jnp.array([4.0 / timesteps])[None],
-            ),
-            pk.costs.five_point_jerk_cost(
-                robot.joint_var_cls(jnp.arange(6, timesteps)),
-                robot.joint_var_cls(jnp.arange(5, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(4, timesteps - 2)),
-                robot.joint_var_cls(jnp.arange(2, timesteps - 4)),
-                robot.joint_var_cls(jnp.arange(1, timesteps - 5)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 6)),
-                dt,
-                jnp.array([2.0 / timesteps])[None],
-            ),
-        ]
-    )
-
-    return jaxls.LeastSquaresProblem(factors, [traj_vars, time_release_var, time_target_var, start_var, target_pos_var]).analyze()
-
-
-#@jax.jit
 def _build_problem(
     robot: pk.Robot,
     robot_coll: pk.collision.RobotCollision,
@@ -314,7 +162,7 @@ def _build_problem(
             coll.reshape((-1, 1)), world_coll_obj.reshape((1, -1))
         )
         colldist = pk.collision.colldist_from_sdf(dist, 0.1)
-        return (colldist * 20.0).flatten()
+        return (colldist * 20.0 / timesteps).flatten()
 
     for world_coll_obj in world_coll:
         factors.append(
@@ -338,7 +186,7 @@ def _build_problem(
             robot_coll_batched,
             traj_vars,
             0.005,
-            4000.0 / timesteps,
+            500.0 / timesteps,
         )
     )
 
@@ -382,7 +230,7 @@ def _build_problem(
     factors.extend(
         [
             jaxls.Cost(
-                lambda vals, var: ((vals[var] - start_cfg) * 300.0).flatten(),
+                lambda vals, var: ((vals[var] - start_cfg) * 100.0).flatten(),
                 (robot.joint_var_cls(jnp.arange(0, 1)),),
                 name="start_pose_constraint",
             ),

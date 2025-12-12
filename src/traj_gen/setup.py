@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 from glob import glob
 import os
 
-package_name = 'planning'
+package_name = 'traj_gen'
 
 setup(
     name=package_name,
@@ -19,8 +19,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='ee106a-tah',
-    maintainer_email='danielmunicio360@gmail.com',
+    maintainer='ee106a-adc',
+    maintainer_email='jared.haertel@berkeley.edu',
     description='TODO: Package description',
     license='TODO: License declaration',
     extras_require={
@@ -30,16 +30,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'main = planning.main:main',
-            'ball_tf = planning.ball_tf_transform:main',
-            'aruco_tf = planning.aruco_tf_transform:main',
-            'kinect_tf = planning.kinect_tf_transform:main',
-            'ik = planning.ik:main',
-            'transform_ball_pose = planning.transform_ball_pose:main',
-            'transform_wrist_pose = planning.transform_wrist_pose:main',
-            'test = planning.test_launch:main',
-            'tickle_balls = planning.test_grab:main',
-            'replay = planning.replay_test:main',
+            'sim = traj_gen.sim:main',
+            'trajectory_planner = traj_gen.trajectory_planner:main',
         ],
     },
 )

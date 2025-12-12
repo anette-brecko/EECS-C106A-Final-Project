@@ -10,9 +10,10 @@ from ur_msgs.srv import SetSpeedSliderFraction
 from control_msgs.action import GripperCommand # You need to import this Action type
 
 from planning.ik import IKPlanner
+from traj_gen.traj_planner import TrajectoryPlanner
 
-class UR7e_TrajectoryPlanner(Node):
-    def __init__(self, name='traj_planner', warmup_timesteps=50):
+class UR7e_StateMachine(Node):
+    def __init__(self, name='state_machine'):
         super().__init__(name)
 
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
@@ -40,6 +41,9 @@ class UR7e_TrajectoryPlanner(Node):
         self.moving = False
 
         self.ik_planner = IKPlanner()
+        self.trajectory_planner = TrajectoryPlanner()
+        self.full_speed = 0.9
+        self.slow_speed = 0.2
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
@@ -60,13 +64,12 @@ class UR7e_TrajectoryPlanner(Node):
             if traj is None:
                 self.get_logger().error("Failed to plan to position")
                 return
-
             self.get_logger().info("Planned to position")
-            self.get_logger().info("I'm gonna touch your balls")
-            
+            self._set_speed_slider(self.slow_speed) 
             self._execute_joint_trajectory(traj.joint_trajectory)
         elif isinstance(next_job, tuple):
             self.get_logger().info("Planned to launch")
+            self._set_speed_slider(self.full_speed) 
             self._execute_joint_trajectory(next_job[0], release_time=next_job[1])
         elif next_job == 'open_grip':
             self.get_logger().info("Opening gripper")
@@ -74,9 +77,6 @@ class UR7e_TrajectoryPlanner(Node):
         elif next_job == 'close_grip':
             self.get_logger().info("Closing gripper")
             self._set_gripper_position(0.0)
-        elif isinstance(next_job, float):
-            self.get_logger().info("Changing speed")
-            self._set_speed_slider(next_job)
         else:
             self.get_logger().error("Unknown job type.")
             self.execute_jobs()  # Proceed to next job
@@ -159,7 +159,7 @@ class UR7e_TrajectoryPlanner(Node):
     
         if release_time is not None:
             self._release_timer = self.create_timer(
-                release_time, 
+                release_time / self.full_speed, # Scale to speed 
                 self._timer_release_callback
             )
 
@@ -185,6 +185,7 @@ class UR7e_TrajectoryPlanner(Node):
         Sets the speed slider fraction (0.0 to 1.0).
         """
         # Create request
+        self.get_logger().info(f"Setting speed slider to {fraction}")
         req = SetSpeedSliderFraction.Request()
         req.speed_slider_fraction = fraction
 
@@ -208,7 +209,7 @@ class UR7e_TrajectoryPlanner(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = UR7e_TrajectoryPlanner()
+    node = UR7e_StateMachine()
     rclpy.spin(node)
     node.destroy_node()
 

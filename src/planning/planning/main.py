@@ -1,9 +1,9 @@
 # ROS Libraries
 import rclpy
 from geometry_msgs.msg import PointStamped 
-from .trajectory_planner import UR7e_TrajectoryPlanner
+from .state_machine import UR7e_StateMachine
 
-class UR7e_BallGraspAndLaunch(UR7e_TrajectoryPlanner):
+class UR7e_BallGraspAndLaunch(UR7e_StateMachine):
     def __init__(self):
         super().__init__('ball_grasp')
 
@@ -13,7 +13,7 @@ class UR7e_BallGraspAndLaunch(UR7e_TrajectoryPlanner):
         self.current_plan = None
         self.joint_state = None
         self.ball_loaded = False
-        self.ik_planner._warmup(50)
+        self.trajectory_planner._warmup(50)
 
 
     def ball_callback(self, ball_pose):
@@ -52,7 +52,7 @@ class UR7e_BallGraspAndLaunch(UR7e_TrajectoryPlanner):
 
         # 5) Launch Ball
         self.job_queue.append(1.0)
-        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.joint_state, target_pose, 50, 1.5)
+        throwing_trajectory, t_release = self.trajectory_planner.plan_to_target(self.joint_state, target_pose, 50, 1.5)
         self.job_queue.append((throwing_trajectory, t_release))
 
         # 6) Reset to launch position

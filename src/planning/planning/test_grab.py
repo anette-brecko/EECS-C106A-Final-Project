@@ -1,14 +1,13 @@
 # ROS Libraries
-from std_srvs.srv import Trigger
 import rclpy
 from geometry_msgs.msg import PointStamped 
-from .trajectory_planner import UR7e_TrajectoryPlanner
+from .state_machine import UR7e_StateMachine
 
-class UR7e_BallGrasp(UR7e_TrajectoryPlanner):
+class UR7e_BallGrasp(UR7e_StateMachine):
     def __init__(self):
         super().__init__('ball_grasp')
 
-        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) # TODO: CHECK IF TOPIC ALIGNS WITH YOURS
+        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) 
         
         self.ball_pose = None
         self.joint_state = None
@@ -25,7 +24,6 @@ class UR7e_BallGrasp(UR7e_TrajectoryPlanner):
         self.ball_pose = ball_pose
 
         # 1) Move to Pre-Grasp Position (gripper above the ball)
-        self.job_queue.append(0.2)
         self.job_queue.append('open_grip')
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x + 0.10, ball_pose.point.y - 0.05,  0.1)
         self.job_queue.append(pre_grasp_state)
