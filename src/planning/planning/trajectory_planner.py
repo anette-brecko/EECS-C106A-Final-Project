@@ -106,13 +106,13 @@ class UR7e_TrajectoryPlanner(Node):
         send_future.add_done_callback(self._on_goal_sent)
 
     def _feedback_callback(self, feedback_msg):
-        print("hey!", self._current_release_time, self._release_triggered)
         if self._release_triggered or self._current_release_time is None:
             return
         
-        current_time = feedback_msg.feedback.actual.time_from_start.sec + \
-                       feedback_msg.feedback.actual.time_from_start.nanosec * 1e-9
+        current_time = feedback_msg.desired.actual.time_from_start.sec + \
+                       feedback_msg.desired.actual.time_from_start.nanosec * 1e-9
 
+        print(self._current_release_time, self._release_triggered, current_time)
         # If we passed the release time, FIRE!
         if current_time >= self._current_release_time:
             self.get_logger().info(f"RELEASE TRIGGERED at {current_time:.3f}s (Target: {self._current_release_time:.3f}s)")

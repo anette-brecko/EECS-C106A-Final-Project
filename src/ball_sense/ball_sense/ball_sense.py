@@ -38,6 +38,7 @@ class HSVFilterNode(Node):
         self.declare_parameter("upper_s", 175)
         self.declare_parameter("upper_v", 200)
         self.surface_area = 0.001551791655
+        self.BALL_RADIUS = 0.022225
 
         # Subscriber
         self.subscription = self.create_subscription(Image, "/camera1/image_raw", self.image_callback, 10)
@@ -46,32 +47,36 @@ class HSVFilterNode(Node):
         # Publishers
         self.mask_pub = self.create_publisher(Image, "hsv_mask", 10)
         self.filtered_pub = self.create_publisher(Image, "hsv_filtered", 10)
+        self.contour_pub = self.create_publisher(Image, "circ_contour", 10)
         self.ball_position_pub = self.create_publisher(PointStamped, '/ball_pose', 1)
 
-        self.camera_intrinsics = None
+        self.camera_intrinsics_received = False
 
         self.bridge = CvBridge()
         self.get_logger().info("HSV Filter Node started!")
 
     def camera_info_callback(self, msg):
-        if self.camera_intrinsics is None:
+        if not self.camera_intrinsics_received:
             self.get_logger().info("Recieved Camera Info")
-            fx = msg.k[0]
-            fy = msg.k[4]
-            cx = msg.k[2]
-            cy = msg.k[5]
-            self.camera_intrinsics = [fx, fy, cx, cy]
+            self.fx = msg.k[0]
+            self.fy = msg.k[4]
+            self.cx = msg.k[2]
+            self.cy = msg.k[5]
+            self.camera_intrinsics_received = True
 
     def image_callback(self, msg):
-        if self.camera_intrinsics is None:
+        if self.camera_intrinsics_received is None:
             self.get_logger().info('Camera is none.')
             return
 
         # Convert ROS2 image → OpenCV BGR image
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 
+        # Blur to denoise and get smoother results
+        blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+
         # Convert to HSV
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
         # Read HSV bounds
         lower = np.array([
@@ -88,53 +93,63 @@ class HSVFilterNode(Node):
         # Create mask
         mask = cv2.inRange(hsv, lower, upper)
 
-        kernel = np.ones((5,5),np.uint8)
+        # Clean up mask
+        kernel = np.ones((3,3),np.uint8)
+        mask = cv2.erode(mask, kernel, iterations=2)
+        mask = cv2.dilate(mask, kernel, iterations=2)
 
-        opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-        mask = closing
+        #mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
         # Apply mask to original BGR image
         filtered = cv2.bitwise_and(frame, frame, mask=mask)
 
+        contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        if len(contours) > 0:
+            # Find the largest contour (assuming it's the sphere)
+            c = max(contours, key=cv2.contourArea)
+        
+            # Fit a circle around the contour
+            ((u, v), radius_pix) = cv2.minEnclosingCircle(c)
+            
+            # Only proceed if the object is big enough (filter noise)
+            if radius_pix > 10:
+                # Draw the circle and centroid on the frame
+                cv2.circle(frame, (int(u), int(v)), int(radius_pix), (0, 255, 255), 2)
+                cv2.circle(frame, (int(u), int(v)), 5, (0, 0, 255), -1)
+          
+                # Use geometric mean of focal lengths to get depth
+                depth = np.sqrt(self.fx * self.fy) * self.BALL_RADIUS / radius_pix
+
+                # Find X , Y , Z of ball
+                X = ((u - self.cx) * depth) / self.fx
+                Y = ((v - self.cy) * depth) / self.fy
+                Z = depth
+
+                point_cam = PointStamped()
+                point_cam.header.stamp = msg.header.stamp
+                point_cam.header.frame_id = 'camera1'
+                point_cam.point.x = X
+                point_cam.point.y = Y
+                point_cam.point.z = Z
+                
+                self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
+                self.ball_position_pub.publish(point_cam)
+            else:
+                self.get_logger().info('No balls spotted')
+
         # Convert back to ROS2 Image messages
         mask_msg = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
         filtered_msg = self.bridge.cv2_to_imgmsg(filtered, encoding="bgr8")
+        contour_msg = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
 
         # Publish
         self.mask_pub.publish(mask_msg)
         self.filtered_pub.publish(filtered_msg)
+        self.contour_pub.publish(contour_msg)
 
-        pixel_count = np.count_nonzero(mask)
-        numerator = self.camera_intrinsics[0] * self.camera_intrinsics[1] * self.surface_area
-        depth = 0
-            
-        if pixel_count > 75:
-            depth = np.sqrt(numerator / pixel_count)
 
-            # self.get_logger().info(f'Ball {i+1}: depth={depth:.3f}m')
-
-            # TODO: Get u, and v of ball in image coordinates
-            # non_zero_mask_x, non_zero_mask_y  = np.nonzero(mask)
-            # u = np.mean(non_zero_mask_x)
-            # v = np.mean(non_zero_mask_y)
-            u, v = ndimage.center_of_mass(mask)
-
-            # TODO: Find X , Y , Z of ball
-            X = ((v - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
-            Y = ((u - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
-            Z = depth
-
-            point_cam = PointStamped()
-            point_cam.header.stamp = msg.header.stamp
-            point_cam.header.frame_id = 'camera1'
-            point_cam.point.x = X
-            point_cam.point.y = Y
-            point_cam.point.z = Z
-            #self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
-            self.ball_position_pub.publish(point_cam)
-        else:
-            self.get_logger().info('No balls spotted')
 
 
 
