@@ -29,7 +29,6 @@ class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
         self.joint_state = msg
 
         # 1) Move to Pre-Launch Position after gripping
-        self.get_logger().info("Toggling grip!")
         self.job_queue.append(0.2)
         self.job_queue.append('toggle_grip')
 
@@ -43,10 +42,7 @@ class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
         throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5, filename=self.traj_save_filename)
         self.job_queue.append((throwing_trajectory, t_release))
 
-        # 6) Release the gripper
-        self.job_queue.append('toggle_grip')
         self.job_queue.append(0.2)
-
         self.job_queue.append(self.launch_state)
         self.execute_jobs()
         self.reset()

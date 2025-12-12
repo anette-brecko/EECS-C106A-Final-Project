@@ -103,11 +103,10 @@ class UR7e_TrajectoryPlanner(Node):
         self._release_triggered = False
 
         send_future = self.exec_ac.send_goal_async(goal, self._feedback_callback)
-        print(send_future)
         send_future.add_done_callback(self._on_goal_sent)
 
     def _feedback_callback(self, feedback_msg):
-        print("hey!", self._current_release_time)
+        print("hey!", self._current_release_time, self._release_triggered)
         if self._release_triggered or self._current_release_time is None:
             return
         
