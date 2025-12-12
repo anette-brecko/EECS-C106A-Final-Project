@@ -59,8 +59,10 @@ class HSVFilterNode(Node):
             self.get_logger().info("Recieved Camera Info")
             fx = msg.k[0]
             fy = msg.k[4]
-            cx = msg.k[2]
-            cy = msg.k[5]
+            # cx = msg.k[2]
+            # cy = msg.k[5]
+            cx = 1280 / 2
+            cy = 720 / 2
             self.camera_intrinsics = [fx, fy, cx, cy]
 
     def image_callback(self, msg):
@@ -129,6 +131,10 @@ class HSVFilterNode(Node):
             Y = ((u - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
             Z = depth
 
+            # Here we use Nathan's hacky desmos LSRL solution:
+            correction = (0.14645 * Z + 0.63488) * .01
+            X += correction
+
             point_cam = PointStamped()
             point_cam.header.stamp = msg.header.stamp
             point_cam.header.frame_id = 'camera1'
@@ -136,6 +142,7 @@ class HSVFilterNode(Node):
             point_cam.point.y = Y
             point_cam.point.z = Z
             #self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
+            print(f'Ball at: {X}, {Y}, {Z}')
             self.ball_position_pub.publish(point_cam)
         else:
             self.get_logger().info('No balls spotted')

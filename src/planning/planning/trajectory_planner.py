@@ -102,20 +102,22 @@ class UR7e_TrajectoryPlanner(Node):
         self._current_release_time = release_time
         self._release_triggered = False
 
+        self._trajectory_start_time = self.get_clock().now().nanoseconds / 1e9
+
         send_future = self.exec_ac.send_goal_async(goal, self._feedback_callback)
         send_future.add_done_callback(self._on_goal_sent)
 
     def _feedback_callback(self, feedback_msg):
-        print("hey!", self._current_release_time, self._release_triggered)
         if self._release_triggered or self._current_release_time is None:
             return
         
-        current_time = feedback_msg.feedback.actual.time_from_start.sec + \
-                       feedback_msg.feedback.actual.time_from_start.nanosec * 1e-9
-
+        now = self.get_clock().now().nanoseconds / 1e9
+        elapsed_time = now - self._trajectory_start_time
+        
+        print("hey!", self._current_release_time, elapsed_time)
         # If we passed the release time, FIRE!
-        if current_time >= self._current_release_time:
-            self.get_logger().info(f"RELEASE TRIGGERED at {current_time:.3f}s (Target: {self._current_release_time:.3f}s)")
+        if elapsed_time >= self._current_release_time:
+            self.get_logger().info(f"RELEASE TRIGGERED at {elapsed_time:.3f}s (Target: {self._current_release_time:.3f}s)")
             
             # Open gripper
             req = Trigger.Request()

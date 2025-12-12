@@ -231,10 +231,10 @@ class IKPlanner(Node):
             
             joint_traj.points.append(point)
 
-        #joint_traj.points[0] = start_point
-        joint_traj.points.pop(0)
-        joint_traj.points.pop(0)
-        joint_traj.points.pop(0)
+        joint_traj.points[0] = start_point
+        # joint_traj.points.pop(0)
+        # joint_traj.points.pop(0)
+        # joint_traj.points.pop(0)
         
         self.get_logger().info(f'Max vel (for each joint): {np.max(velocities, axis=0)}')
 
