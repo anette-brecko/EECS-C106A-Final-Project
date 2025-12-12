@@ -38,9 +38,6 @@ class UR7e_BallGraspAndLaunch(UR7e_TrajectoryPlanner):
         # TODO: Ball offsets!!!
         grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.158)
         self.job_queue.append(grasp_state)
-
-        # 3) Close the gripper. See job_queue entries defined in init above for how to add this action.
-        self.job_queue.append('toggle_grip')
         
         # 4) Move back to Pre-Grasp Position
         self.launch_state = pre_grasp_state

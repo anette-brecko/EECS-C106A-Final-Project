@@ -35,9 +35,6 @@ class UR7e_ReplayTestLaunch(UR7e_TrajectoryPlanner):
         self.job_queue.append((throwing_trajectory, t_release))
         self.job_queue.append(0.2)   
 
-        # Release the gripper
-        self.job_queue.append('toggle_grip')
-
         # Reset
         self.job_queue.append(start_cfg)
 
