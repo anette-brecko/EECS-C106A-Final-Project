@@ -121,8 +121,8 @@ class HSVFilterNode(Node):
             u, v = ndimage.center_of_mass(mask)
 
             # TODO: Find X , Y , Z of ball
-            X = ((u - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
-            Y = ((v - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
+            X = ((v - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
+            Y = ((u - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
             Z = depth
 
             point_cam = PointStamped()
