@@ -61,9 +61,9 @@ class UR7e_BallGraspAndLaunch(UR7e_TrajectoryPlanner):
         throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, target_pose, 50, 1.5)
         self.job_queue.append((throwing_trajectory, t_release))
 
-        self.job_queue(0.2)   
-
+        self.job_queue.append(0.2)   
         self.job_queue.append(self.launch_state)
+        
         self.execute_jobs()
         self.reset()
 

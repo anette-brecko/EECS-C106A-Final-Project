@@ -48,7 +48,7 @@ def solve_by_sampling(
             g
         )
 
-    best_samples = choose_best_samples(samples, num_samples_iterated, robot, problem, start_cfg, target_position, timesteps)
+    best_samples = choose_best_samples(samples, num_samples_iterated, robot, problem, timesteps)
     return solve_static_trajopt(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, best_samples, g)
 
 

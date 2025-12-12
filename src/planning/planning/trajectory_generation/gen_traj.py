@@ -40,8 +40,6 @@ def choose_best_samples(
     num_samples_selected: int,
     robot: pk.Robot,
     problem: jaxls.AnalyzedLeastSquaresProblem,
-    start_cfg: ArrayLike,
-    target_position: ArrayLike,
     timesteps: int
 ) -> list[tuple[onp.ndarray, float, float]]:
     traj_vars = robot.joint_var_cls(jnp.arange(timesteps))
@@ -119,8 +117,6 @@ def solve_static_trajopt(
         len(solved_samples),
         robot,
         problem,
-        start_cfg,
-        target_position,
         timesteps
     )
 
@@ -366,7 +362,23 @@ def _build_problem(
         velocity = (25 * q_t - 48 * q_tm1 + 36 * q_tm2 - 16 * q_tm3 + 3 * q_tm4) / (12 * dt)
         return (velocity * 20.0).flatten()
     
-
+    @jaxls.Cost.create_factory(name="velocity_limit_cost_forward")
+    def velocity_limit_cost_forward(
+        vals: jaxls.VarValues,
+        var_t: jaxls.Var[Array],
+        var_t_plus_1: jaxls.Var[Array],
+        var_t_plus_2: jaxls.Var[Array],
+        dt: float,
+    ) -> Array:
+        """Computes the residual penalizing velocity limit violations (3-point forward stencil)."""
+        q_t   = vals[var_t]
+        q_tp1 = vals[var_t_plus_1]
+        q_tp2 = vals[var_t_plus_2]
+        
+        # Formula: (-3*q(t) + 4*q(t+1) - q(t+2)) / 2dt
+        velocity = (-3 * q_t + 4 * q_tp1 - 1 * q_tp2) / (2 * dt)
+        
+        return (velocity * 20.0).flatten()
     factors.extend(
         [
             jaxls.Cost(
@@ -375,11 +387,17 @@ def _build_problem(
                 name="start_pose_constraint",
             ),
             terminal_velocity_limit_cost(
-                robot.joint_var_cls(jnp.arange(timesteps-3, timesteps)),
-                robot.joint_var_cls(jnp.arange(timesteps-4, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(timesteps-5, timesteps - 2)),
-                robot.joint_var_cls(jnp.arange(timesteps-6, timesteps - 3)),
-                robot.joint_var_cls(jnp.arange(timesteps-7, timesteps - 4)),
+                robot.joint_var_cls(jnp.arange(timesteps-5, timesteps)),
+                robot.joint_var_cls(jnp.arange(timesteps-6, timesteps - 1)),
+                robot.joint_var_cls(jnp.arange(timesteps-7, timesteps - 2)),
+                robot.joint_var_cls(jnp.arange(timesteps-8, timesteps - 3)),
+                robot.joint_var_cls(jnp.arange(timesteps-9, timesteps - 4)),
+                dt
+            ),
+            velocity_limit_cost_forward(
+                robot.joint_var_cls(jnp.arange(0, 3)),
+                robot.joint_var_cls(jnp.arange(1, 4)),
+                robot.joint_var_cls(jnp.arange(2, 5)),
                 dt
             ),
         ]

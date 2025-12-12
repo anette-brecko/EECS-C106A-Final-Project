@@ -11,7 +11,7 @@ from ur_msgs.srv import SetSpeedSliderFraction
 from planning.ik import IKPlanner
 
 class UR7e_TrajectoryPlanner(Node):
-    def __init__(self, name='traj_planner'):
+    def __init__(self, name='traj_planner', warmup_timesteps=50):
         super().__init__(name)
 
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
@@ -37,10 +37,9 @@ class UR7e_TrajectoryPlanner(Node):
         self.ball_loaded = False
 
         self.ik_planner = IKPlanner()
+        self.ik_planner._warmup(warmup_timesteps)
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
-
-        self.speed = 1.0
 
     def joint_state_callback(self, msg: JointState):
         self.joint_state = msg

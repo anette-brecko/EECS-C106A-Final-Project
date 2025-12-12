@@ -60,9 +60,9 @@ class IKPlanner(Node):
         self.robot_coll = pk.collision.RobotCollision.from_urdf(urdf)
 
         # For UR5 it's important to initialize the robot in a safe configuration;
-        default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141])
-        self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
-        UR7eJointVar.default_factory = staticmethod(lambda: jnp.array(default_cfg))
+        self.default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141])
+        self.robot = pk.Robot.from_urdf(urdf, default_joint_cfg=self.default_cfg)
+        UR7eJointVar.default_factory = staticmethod(lambda: jnp.array(self.default_cfg))
 
         self.robot = jdc.replace(self.robot, joint_var_cls=UR7eJointVar)
         self.target_link_name = "robotiq_hande_end"
@@ -70,6 +70,24 @@ class IKPlanner(Node):
         self.world = World(self.robot, urdf, self.target_link_name) 
 
         self.speed = 1.0
+
+    def _warmup(self, timesteps):
+        self.get_logger().info(f'Warmup jax')
+        solve_by_sampling(
+            self.robot,
+            self.robot_coll,
+            self.world.gen_world_coll(),
+            self.target_link_name,
+            self.default_cfg,
+            np.array([0.3, 2, 0]),
+            timesteps,
+            0.02,
+            robot_max_reach=0.85 * 0.8, # max 
+            max_vel=7, 
+            num_samples=1,
+            num_samples_iterated=1,
+        )
+
 
 
     # -----------------------------------------------------------
@@ -149,7 +167,15 @@ class IKPlanner(Node):
         self.get_logger().info('Motion plan computed successfully.')
         return result.motion_plan_response.trajectory
 
-    def _solve_to_target(self, start_cfg, target_pos, timesteps, dt):
+    def _solve_to_target(
+            self, 
+            start_cfg, 
+            target_pos, 
+            timesteps, 
+            dt, 
+            num_samples=300, 
+            num_samples_iterated=5
+            ):
         """ Solve the trajectory problem """
         return solve_by_sampling(
             self.robot,
@@ -160,10 +186,10 @@ class IKPlanner(Node):
             target_pos,
             timesteps,
             dt,
-            7,
-            0.85 * 0.8, 
-            300,
-            10,
+            robot_max_reach=0.85 * 0.8, # max 
+            max_vel=7, 
+            num_samples=num_samples,
+            num_samples_iterated=num_samples_iterated,
         )
     
     def _trajectory_points_to_msg(self, start_cfg, traj_points, dt) -> JointTrajectory:
@@ -212,7 +238,15 @@ class IKPlanner(Node):
 
         return joint_traj
         
-    def plan_to_target(self, start_joint_state, target_pos, timesteps, time_horizon,filename = None):
+    def plan_to_target(
+            self, 
+            start_joint_state, 
+            target_pos, 
+            timesteps, 
+            time_horizon,
+            num_samples = 100,
+            num_samples_iterated=10,
+            filename = None):
         """ Return message of planned trajectory and visualize before execution"""
         dt = time_horizon / timesteps
         start_cfg = self._joint_state_to_cfg(start_joint_state)
@@ -220,27 +254,24 @@ class IKPlanner(Node):
         status = "regenerate"
         traj, t_release, t_target = None, None, None
         solutions = None
+        idx = 0
         while True:
             # Check if we need to solve again
             match status:
-                case "regenerate" | "next" if not solutions:
-                    solutions = solve_by_sampling(
-                        self.robot,
-                        self.robot_coll,
-                        self.world.gen_world_coll(),
-                        self.target_link_name,
+                case "regenerate":
+                    solutions = self._solve_to_target(
                         start_cfg,
                         target_pos,
                         timesteps,
                         dt,
-                        robot_max_reach=0.85 * 0.8, # max 
-                        max_vel=7, 
-                        num_samples=50,
-                        num_samples_iterated=10,
+                        num_samples,
+                        num_samples_iterated
                     )
-                    traj, t_release, t_target = solutions.pop(0)
-                case "next" if solutions:
-                    traj, t_release, t_target = solutions.pop(0)
+                    traj, t_release, t_target = solutions[0]
+                    idx = 0
+                case "next":
+                    idx = (idx + 1) % len(solutions)
+                    traj, t_release, t_target = solutions[idx]
                 case "execute":
                     if filename:
                         save_trajectory(
@@ -254,7 +285,6 @@ class IKPlanner(Node):
                             dt
                         )
                     return self._trajectory_points_to_msg(start_cfg, traj, dt), t_release
-
             status = self.world.visualize_all(
                     start_cfg, 
                     target_pos, 
@@ -271,7 +301,7 @@ class IKPlanner(Node):
         # Visualize
         self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
 
-        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release
+        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release, start_cfg
 
     def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
         """ Convert JointState to configuration vector """

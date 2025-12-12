@@ -12,7 +12,7 @@ from planning.ik import IKPlanner
 
 class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
     def __init__(self):
-        super().__init__('ball_grasp')
+        super().__init__('ball_grasp', 50)
         self.target_pose = np.array([0.3, 2.0, .7])
 
         clean_args = remove_ros_args(args=sys.argv)
@@ -40,7 +40,7 @@ class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
         # 5) Launch Ball
         self.get_logger().info("Computing trajectory")        
         self.job_queue.append(1.0)
-        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5, self.traj_save_filename)
+        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5, filename=self.traj_save_filename)
         self.job_queue.append((throwing_trajectory, t_release))
 
         # 6) Release the gripper
