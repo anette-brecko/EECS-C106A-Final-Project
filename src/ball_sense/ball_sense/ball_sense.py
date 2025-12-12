@@ -115,14 +115,16 @@ class HSVFilterNode(Node):
             # self.get_logger().info(f'Ball {i+1}: depth={depth:.3f}m')
 
             # TODO: Get u, and v of ball in image coordinates
-            # non_zero_mask_x, non_zero_mask_y  = np.nonzero(mask)
-            # u = np.mean(non_zero_mask_x)
-            # v = np.mean(non_zero_mask_y)
-            u, v = ndimage.center_of_mass(mask)
+            non_zero_mask_x, non_zero_mask_y  = np.nonzero(mask)
+            u = np.median(non_zero_mask_x)
+            v = np.median(non_zero_mask_y)
+            #u, v = ndimage.center_of_mass(mask)
 
             # TODO: Find X , Y , Z of ball
-            X = ((v - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
-            Y = ((u - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
+            # switched u and v
+            # if using line 121: x=v, y=u
+            X = ((u - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
+            Y = ((v - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
             Z = depth
 
             point_cam = PointStamped()
