@@ -37,7 +37,6 @@ class UR7e_TrajectoryPlanner(Node):
         self.ball_loaded = False
 
         self.ik_planner = IKPlanner()
-        self.ik_planner._warmup(warmup_timesteps)
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
@@ -108,6 +107,7 @@ class UR7e_TrajectoryPlanner(Node):
         send_future.add_done_callback(self._on_goal_sent)
 
     def _feedback_callback(self, feedback_msg):
+        print("hey!", self._current_release_time)
         if self._release_triggered or self._current_release_time is None:
             return
         
@@ -160,13 +160,10 @@ class UR7e_TrajectoryPlanner(Node):
     def _on_speed_set_done(self, future):
         try:
             response = future.result()
-            if response.success:
-                self.get_logger().info("Speed slider updated successfully.")
-                self.execute_jobs()  # Proceed to next job
-            else:
-                self.get_logger().warn("Failed to set speed slider.")
+            self.get_logger().info("Speed slider updated successfully.")
+            self.execute_jobs()  # Proceed to next job
         except Exception as e:
-            self.get_logger().error(f"Service call failed: {e}")
+            self.get_logger().error(f"Service call failed HERE: {e}")
 
 
 def main(args=None):

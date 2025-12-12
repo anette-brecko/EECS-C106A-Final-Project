@@ -231,8 +231,10 @@ class IKPlanner(Node):
             
             joint_traj.points.append(point)
 
-        joint_traj.points[0] = start_point
-        joint_traj.points.pop(1)
+        #joint_traj.points[0] = start_point
+        joint_traj.points.pop(0)
+        joint_traj.points.pop(0)
+        joint_traj.points.pop(0)
         
         self.get_logger().info(f'Max vel (for each joint): {np.max(velocities, axis=0)}')
 
@@ -284,7 +286,7 @@ class IKPlanner(Node):
                             timesteps,
                             dt
                         )
-                    return self._trajectory_points_to_msg(start_cfg, traj, dt), t_release
+                    return self._trajectory_points_to_msg(start_cfg, traj, dt), t_release / self.speed
             status = self.world.visualize_all(
                     start_cfg, 
                     target_pos, 
@@ -301,7 +303,7 @@ class IKPlanner(Node):
         # Visualize
         self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
 
-        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release, start_cfg
+        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release / self.speed, self._cfg_to_msg(start_cfg)
 
     def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
         """ Convert JointState to configuration vector """
@@ -311,6 +313,16 @@ class IKPlanner(Node):
                 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
         ]
         return np.array([data_dict[name] for name in target_joint_names])
+    
+    def _cfg_to_msg(self, cfg: np.ndarray) -> JointState:
+        """ Convert JointState to configuration vector """
+        joint_state = JointState()
+        joint_state.name = [
+                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+        ]
+        joint_state.position = cfg.tolist()
+        return joint_state
    
     def _estimate_gradients(self, data: np.ndarray, dt: float) -> np.ndarray:
         """

@@ -13,6 +13,7 @@ class UR7e_BallGraspAndLaunch(UR7e_TrajectoryPlanner):
         self.current_plan = None
         self.joint_state = None
         self.ball_loaded = False
+        self.ik_planner._warmup(50)
 
 
     def ball_callback(self, ball_pose):

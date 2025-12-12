@@ -382,7 +382,7 @@ def _build_problem(
     factors.extend(
         [
             jaxls.Cost(
-                lambda vals, var: ((vals[var] - start_cfg) * 100.0).flatten(),
+                lambda vals, var: ((vals[var] - start_cfg) * 300.0).flatten(),
                 (robot.joint_var_cls(jnp.arange(0, 1)),),
                 name="start_pose_constraint",
             ),
