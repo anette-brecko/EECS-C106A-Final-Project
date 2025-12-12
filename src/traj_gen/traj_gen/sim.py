@@ -11,6 +11,7 @@ import jax.numpy as jnp
 import pyroki as pk
 from ._trajectory_generation.generate_samples import solve_by_sampling
 from ._trajectory_generation.save_and_load import save_trajectory
+from ._trajectory_generation.solve_ik import solve_ik_with_collision
 import tyro
 from .load_urdf import load_ur7e_with_gripper, UR7eJointVar
 import jax_dataclasses as jdc
@@ -33,10 +34,16 @@ def main(filename: str, timesteps: int, time_horizon: float):
     world = World(robot, urdf, target_link_name)
 
     # Generate example trajectory
-    start_cfg = default_cfg
+    start_pos = np.array([0, -.5, .7])
+    start_wxyz = np.array([0, 0, 0, 1])
+    target_link_indx = robot.links.names.index(target_link_name)
+    start_cfg = solve_ik_with_collision(robot, robot_coll, world.gen_world_coll(), target_link_indx, default_cfg, start_pos, start_wxyz)
+    
     target_pos = np.array([-0.3, 2.0, .2])
     dt = time_horizon / timesteps
 
+    #world.visualize_tf(start_cfg, target_pos)
+    
     status = "regenerate"
     traj, t_release, t_target = None, None, None
     solutions = None
@@ -54,8 +61,8 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     target_pos,
                     timesteps,
                     dt,
-                    robot_max_reach=0.85 * 0.8, # max 
-                    max_vel=7, 
+                    robot_max_reach=0.85 * 0.95, # max 
+                    max_vel=13, 
                     num_samples=300,
                     num_samples_iterated=5,
                 )

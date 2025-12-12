@@ -190,7 +190,7 @@ def _build_problem(
         )
     )
 
-    @jaxls.Cost.create_factory(name="terminal_velocity_limit_cost")
+    @jaxls.Cost.factory(name="terminal_velocity_limit_cost")
     def terminal_velocity_limit_cost(
         vals: jaxls.VarValues,
         var_t: jaxls.Var[Array],
@@ -210,7 +210,7 @@ def _build_problem(
         velocity = (25 * q_t - 48 * q_tm1 + 36 * q_tm2 - 16 * q_tm3 + 3 * q_tm4) / (12 * dt)
         return (velocity * 20.0).flatten()
     
-    @jaxls.Cost.create_factory(name="velocity_limit_cost_forward")
+    @jaxls.Cost.factory(name="velocity_limit_cost_forward")
     def velocity_limit_cost_forward(
         vals: jaxls.VarValues,
         var_t: jaxls.Var[Array],
@@ -286,7 +286,7 @@ def _build_problem(
     )
 
      # Trajectory tossing
-    @jaxls.Cost.create_factory(name="toss_target_cost")
+    @jaxls.Cost.factory(name="toss_target_cost")
     def toss_target_cost(
         vals: jaxls.VarValues,
         traj_vars_tuple: tuple[jaxls.Var[jax.Array], ...],
@@ -365,7 +365,7 @@ def _build_problem(
         # For now assuming target_position is available in closure as `target_position`
         return jnp.concatenate([pos_error, align_error])
         
-    @jaxls.Cost.create_factory(name="positive_time_cost")
+    @jaxls.Cost.factory(name="positive_time_cost")
     def positive_time_cost(
         vals: jaxls.VarValues,
         time_release: TimeVar,
