@@ -11,11 +11,11 @@ import sys
 import numpy as np
 import pyroki as pk
 
-from .trajectory_generation.generate_samples import solve_by_sampling
+from ._trajectory_generation.generate_samples import solve_by_sampling
 from .world import World
 from .load_urdf import load_ur7e_with_gripper, UR7eJointVar
 import jax_dataclasses as jdc
-from .trajectory_generation.save_and_load import save_trajectory, load_trajectory
+from ._trajectory_generation.save_and_load import save_trajectory, load_trajectory
 
 import jax.numpy as jnp
 

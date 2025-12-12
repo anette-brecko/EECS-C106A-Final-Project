@@ -23,8 +23,7 @@ class World:
         self.table_width = 0.4 # Along y-axis
         self.table_length = 2.0 # Along x-axis
         self.table_height = 0.7366
-        self.table_safety = self.table_width / 3
-        self.table_offset = np.array([0.0, 0.4, -0.22]) # As measured by center of the edge of the table
+        self.table_offset = np.array([0.0, 0.4, -0.18]) # As measured by center of the edge of the table
 
         # Floor parameters
         self.min_height = -0.6 # Won't allow robot to go below this height
@@ -34,8 +33,7 @@ class World:
 
         # Pillar parameters
         self.pillar_length = 0.28
-        self.pillar_height = 0.5
-        self.pillar_offset = 0.1
+        self.pillar_height = 0.91
         self.visualize_world()
         self._visualize_joints(np.array(robot.joint_var_cls.default_factory()))
 
@@ -71,6 +69,20 @@ class World:
                 ),
             ),
         )
+
+        # Visualize pillar
+        self.server.scene.add_mesh_trimesh(
+            "pillar",
+            trimesh.creation.box(
+                extents=(self.pillar_length, self.pillar_length, self.pillar_height),
+                transform=trimesh.transformations.translation_matrix(
+                    np.array([0, 0.0, -self.pillar_height / 2])
+                ),
+            ),
+            visible=False
+        )
+        
+        self._visualize_collision()
                                    
         
     def visualize_tf(self, start_cfg, target_pos):
@@ -185,14 +197,15 @@ class World:
             np.array([0, self.wall_distance, 0]), np.array([0.0, 1.0, 0.0])
         )
 
+        # TODO: Pillar
         pillar_coll = pk.collision.Capsule.from_radius_height(
-            position=np.array([0.0, 0.0, -self.pillar_height / 2 - self.pillar_length / 2 - self.pillar_offset]),
+            position=np.array([0.0, 0.0, -self.pillar_height / 2 - 0.05]),
             radius=self.pillar_length / 2,
             height=self.pillar_height,
         )
 
-
-        table_intervals = np.linspace(start=-self.table_height / 2.0, stop=self.table_height / 2.0 - self.table_safety, num=3)
+        # TODO: Table
+        table_intervals = np.linspace(start=-self.table_height / 2.0 + self.table_width / 2.0, stop=self.table_height / 2.0 - self.table_width / 2.0, num=3)
         translation = np.concatenate(
             [
                 np.full((table_intervals.shape[0], 1), 0.0),
@@ -206,35 +219,84 @@ class World:
             wxyz=np.array([.707,0, .707, 0]),
             radius=np.full((translation.shape[0], 1), self.table_width / 2),
             height=np.full((translation.shape[0], 1), self.table_length),
-        )
+        ) 
 
-        # VISUALIZE COLLIDERS
+        return ground_coll, table_coll, pillar_coll
 
-        mesh = trimesh.creation.capsule(height=self.pillar_height, radius=self.pillar_length / 2)
+    def _visualize_collision(self):
+        """Visualizes the collision capsules in Viser to debug overlap."""
+        import jaxlie # Ensure jaxlie is imported
+        
+        # Get the collision objects
+        _, table_coll, pillar_coll = self.gen_world_coll()
+
+        def draw_capsule_group(name, coll_geom):
+            # 1. Convert JAX/Jaxlie objects to NumPy
+            rot_params = np.array(coll_geom.pose.rotation().parameters())
+            pos = np.array(coll_geom.pose.translation())
+            
+            # Access radius/height properties (handles .size indexing automatically)
+            radii = np.array(coll_geom.radius)
+            heights = np.array(coll_geom.height)
+
+            print(radii, heights)
+
+            # 2. Determine batching based on ROTATION shape, which is the most reliable indicator
+            # Single: (4,) -> ndim=1
+            # Batch:  (N, 4) -> ndim=2
+            is_batched = (rot_params.ndim > 1)
+
+            if not is_batched:
+                # --- Single Capsule ---
+                r_val = float(radii)
+                h_val = float(heights)
+                
+                mesh = trimesh.creation.capsule(height=h_val, radius=r_val)
+                
+                self.server.scene.add_mesh_simple(
+                    f"/collision/{name}",
+                    vertices=mesh.vertices,
+                    faces=mesh.faces,
+                    position=pos,
+                    wxyz=rot_params,
+                    color=(1.0, 0.0, 0.0),
+                    opacity=0.5
+                )
+            else:
+                # --- Batched Capsules ---
+                count = rot_params.shape[0]
+                
+                # Handle Position Broadcasting
+                # If pos is (3,), it means all capsules share the same position
+                if pos.ndim == 1:
+                    positions = np.tile(pos, (count, 1))
+                else:
+                    positions = pos
+
+                # Check if sizes are arrays or scalars
+                r_is_array = (radii.ndim > 0)
+                h_is_array = (heights.ndim > 0)
+
+                for i in range(count):
+                    # Extract scalar dimensions for this capsule
+                    r_val = float(radii[i]) if r_is_array else float(radii)
+                    h_val = float(heights[i]) if h_is_array else float(heights)
                     
-        self.server.scene.add_mesh_simple(
-            f"/collision/pillar",
-            vertices=mesh.vertices,
-            faces=mesh.faces,
-            position=np.array([0.0, 0.0, -self.pillar_height / 2 - self.pillar_length / 2 - self.pillar_offset]),
-            color=(1.0, 0.0, 0.0),
-            opacity=0.5
-        )
+                    mesh = trimesh.creation.capsule(height=h_val, radius=r_val)
 
+                    self.server.scene.add_mesh_simple(
+                        f"/collision/{name}/{i}",
+                        vertices=mesh.vertices,
+                        faces=mesh.faces,
+                        position=positions[i],
+                        wxyz=rot_params[i],
+                        color=(1.0, 0.0, 0.0),
+                        opacity=0.5
+                    )    
+        draw_capsule_group("table", table_coll)
+        draw_capsule_group("pillar", pillar_coll)
 
-        for i, trans in enumerate(translation):
-            mesh = trimesh.creation.capsule(height=self.table_length, radius=self.table_width / 2)
-                    
-            self.server.scene.add_mesh_simple(
-                f"/collision/table/{i}",
-                vertices=mesh.vertices,
-                faces=mesh.faces,
-                position=trans,
-                wxyz=np.array([.707,0, .707, 0]),
-                color=(1.0, 0.0, 0.0),
-                opacity=0.5
-            )
-
+        # Visualize floor
         floor = trimesh.creation.box(
                 extents=(2.0, 2.0, 0.001),
                 transform=trimesh.transformations.translation_matrix(
@@ -248,11 +310,10 @@ class World:
             faces=floor.faces,
             color=(1.0, 0.0, 0.0),
             opacity=0.5,
+            visible=False
         )
 
 
-        return ground_coll, table_coll, pillar_coll
-        
 
     
     def _ball_trajectory(self, traj, time_release, dt) -> Callable[[float], np.ndarray]:

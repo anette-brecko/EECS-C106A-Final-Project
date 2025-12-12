@@ -9,8 +9,8 @@ from .world import World
 import numpy as np
 import jax.numpy as jnp
 import pyroki as pk
-from .trajectory_generation.generate_samples import solve_by_sampling
-from .trajectory_generation.save_and_load import save_trajectory
+from ._trajectory_generation.generate_samples import solve_by_sampling
+from ._trajectory_generation.save_and_load import save_trajectory
 import tyro
 from .load_urdf import load_ur7e_with_gripper, UR7eJointVar
 import jax_dataclasses as jdc
@@ -57,7 +57,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     robot_max_reach=0.85 * 0.8, # max 
                     max_vel=7, 
                     num_samples=300,
-                    num_samples_iterated=3,
+                    num_samples_iterated=5,
                 )
                 traj, t_release, t_target = solutions[0]
                 idx = 0
@@ -86,6 +86,6 @@ def main(filename: str, timesteps: int, time_horizon: float):
                 timesteps, 
                 dt
             )
-    
+            
 if __name__ == "__main__":
     tyro.cli(main)

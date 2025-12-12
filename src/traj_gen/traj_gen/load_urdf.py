@@ -78,8 +78,8 @@ def ros_package_handler(fname):
     return fname
 
 def load_ur7e_with_gripper() -> yourdfpy.URDF:
-    planning_dir = get_package_share_directory("planning")
-    xacro_path = os.path.join(planning_dir, 'urdf', 'ur7e_with_gripper.urdf.xacro')
+    traj_gen_dir = get_package_share_directory("traj_gen")
+    xacro_path = os.path.join(traj_gen_dir, 'urdf', 'ur7e_with_pedestal_and_gripper_no_coll.urdf.xacro')
 
     urdf = load_xacro_robot(
         xacro_path, 
