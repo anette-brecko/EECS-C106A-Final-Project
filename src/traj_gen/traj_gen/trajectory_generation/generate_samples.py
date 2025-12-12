@@ -34,22 +34,47 @@ def solve_by_sampling(
     num_samples_iterated: int = 10,
     g: float = 9.81,
 ) -> list[tuple[onp.ndarray, float, float]]:
-    samples = generate_samples(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, g, max_vel, robot_max_reach, num_samples)
+    samples = generate_samples(
+        robot, 
+        robot_coll,
+        world_coll, 
+        target_link_name, 
+        start_cfg, 
+        target_position, 
+        timesteps, 
+        dt, 
+        g, 
+        max_vel, 
+        robot_max_reach, 
+        num_samples
+    )
     
     problem = _build_problem(
-            robot, 
-            robot_coll, 
-            world_coll, 
-            robot.links.names.index(target_link_name), 
-            jnp.array(start_cfg),
-            jnp.array(target_position),
-            timesteps, 
-            dt, 
-            g
-        )
+        robot, 
+        robot_coll, 
+        world_coll, 
+        robot.links.names.index(target_link_name), 
+        jnp.array(start_cfg),
+        jnp.array(target_position),
+        timesteps, 
+        dt, 
+        g
+    )
 
     best_samples = choose_best_samples(samples, num_samples_iterated, robot, problem, timesteps)
-    return solve_static_trajopt(robot, robot_coll, world_coll, target_link_name, start_cfg, target_position, timesteps, dt, best_samples, g)
+    return solve_static_trajopt(
+        robot, 
+        robot_coll, 
+        world_coll, 
+        target_link_name, 
+        start_cfg, 
+        target_position, 
+        timesteps, 
+        dt,
+        best_samples, 
+        g, 
+        problem
+    )
 
 
 def generate_samples(

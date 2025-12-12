@@ -1,4 +1,4 @@
-from typing import Sequence, Callable
+from typing import Sequence, Callable, Optional
 
 import jax
 import jax.numpy as jnp
@@ -10,8 +10,6 @@ from jax import Array
 from jax.typing import ArrayLike 
 import jax_dataclasses as jdc
 from .jacobian import compute_ee_spatial_jacobian
-
-from collections import defaultdict
 
 import os
 
@@ -67,6 +65,7 @@ def solve_static_trajopt(
     dt: float,
     initial_trajectories: list[tuple[onp.ndarray, float, float]],
     g: float = 9.81,
+    problem: Optional[jaxls.AnalyzedLeastSquaresProblem] = None
 ) -> list[tuple[onp.ndarray, float, float]]:
     """Gives the optimized trajectories from best to worst"""
     target_link_idx = robot.links.names.index(target_link_name)
@@ -81,17 +80,18 @@ def solve_static_trajopt(
     init_t_rels = jnp.array(init_t_rels)[:, None]
     init_t_tgts = jnp.array(init_t_tgts)[:, None]
 
-    problem = _build_problem(
-            robot, 
-            robot_coll, 
-            world_coll, 
-            target_link_idx, 
-            start_cfg_jax,
-            target_pos_jax, 
-            timesteps, 
-            dt, 
-            g
-        ) 
+    if problem is None:
+        problem = _build_problem(
+                robot, 
+                robot_coll, 
+                world_coll, 
+                target_link_idx, 
+                start_cfg_jax,
+                target_pos_jax, 
+                timesteps, 
+                dt, 
+                g
+            ) 
 
     trajs, t_rels, t_tgts = _solve_static_trajopt(
         robot,
@@ -162,7 +162,7 @@ def _build_problem(
             coll.reshape((-1, 1)), world_coll_obj.reshape((1, -1))
         )
         colldist = pk.collision.colldist_from_sdf(dist, 0.1)
-        return (colldist * 20.0 / timesteps).flatten()
+        return (colldist * 20.0).flatten()
 
     for world_coll_obj in world_coll:
         factors.append(
