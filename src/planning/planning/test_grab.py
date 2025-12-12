@@ -26,13 +26,14 @@ class UR7e_BallGrasp(UR7e_TrajectoryPlanner):
 
         # 1) Move to Pre-Grasp Position (gripper above the ball)
         # TODO: Ball offsets!!!
-        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y - 0.0, ball_pose.point.z + 0)
+        self.job_queue.append(0.2)
+        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y - 0.0,  0.1)
         self.job_queue.append(pre_grasp_state)
 
         # 2) Move to Grasp Position (lower the gripper to the ball)
         # TODO: Ball offsets!!!
         # theoretical max z offset is 6 cm but that's dangerous
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y - 0.0, ball_pose.point.z - 0.03)
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y - 0.0, - 0.032)
         self.job_queue.append(grasp_state)
 
         # 3) Close the gripper. See job_queue entries defined in init above for how to add this action.

@@ -31,12 +31,13 @@ class HSVFilterNode(Node):
         # self.declare_parameter("upper_h", 167.4)
         # self.declare_parameter("upper_s", 41)
         # self.declare_parameter("upper_v", 36)
-        self.declare_parameter("lower_h", 53)
-        self.declare_parameter("lower_s", 0)
-        self.declare_parameter("lower_v", 40)
-        self.declare_parameter("upper_h", 93)
-        self.declare_parameter("upper_s", 175)
-        self.declare_parameter("upper_v", 200)
+        # mask1 = cv2.inRange(hsv, (30,16,37), (80,147,96))
+        self.declare_parameter("lower_h", 30)
+        self.declare_parameter("lower_s", 16)
+        self.declare_parameter("lower_v", 37)
+        self.declare_parameter("upper_h", 80)
+        self.declare_parameter("upper_s", 147)
+        self.declare_parameter("upper_v", 96)
         self.surface_area = 0.001551791655
 
         # Subscriber
@@ -88,11 +89,12 @@ class HSVFilterNode(Node):
         # Create mask
         mask = cv2.inRange(hsv, lower, upper)
 
-        kernel = np.ones((5,5),np.uint8)
+        kernel = np.ones((7,7),np.uint8)
 
-        opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-        mask = closing
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
         # Apply mask to original BGR image
         filtered = cv2.bitwise_and(frame, frame, mask=mask)
@@ -116,15 +118,15 @@ class HSVFilterNode(Node):
 
             # TODO: Get u, and v of ball in image coordinates
             non_zero_mask_x, non_zero_mask_y  = np.nonzero(mask)
-            u = np.median(non_zero_mask_x)
-            v = np.median(non_zero_mask_y)
-            #u, v = ndimage.center_of_mass(mask)
+            # u = np.mean(non_zero_mask_x)
+            # v = np.mean(non_zero_mask_y)
+            u, v = ndimage.center_of_mass(mask)
 
             # TODO: Find X , Y , Z of ball
             # switched u and v
             # if using line 121: x=v, y=u
-            X = ((u - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
-            Y = ((v - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
+            X = ((v - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
+            Y = ((u - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
             Z = depth
 
             point_cam = PointStamped()
