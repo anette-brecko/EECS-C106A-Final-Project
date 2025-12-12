@@ -31,12 +31,12 @@ class HSVFilterNode(Node):
         # self.declare_parameter("upper_h", 167.4)
         # self.declare_parameter("upper_s", 41)
         # self.declare_parameter("upper_v", 36)
-        self.declare_parameter("lower_h", 53)
-        self.declare_parameter("lower_s", 0)
-        self.declare_parameter("lower_v", 40)
-        self.declare_parameter("upper_h", 93)
-        self.declare_parameter("upper_s", 175)
-        self.declare_parameter("upper_v", 200)
+        self.declare_parameter("lower_h", 30)
+        self.declare_parameter("lower_s", 16)
+        self.declare_parameter("lower_v", 37)
+        self.declare_parameter("upper_h", 80)
+        self.declare_parameter("upper_s", 147)
+        self.declare_parameter("upper_v", 96)
         self.surface_area = 0.001551791655
         self.BALL_RADIUS = 0.022225
 
@@ -62,8 +62,9 @@ class HSVFilterNode(Node):
             self.fy = msg.k[4]
             self.cx = msg.k[2]
             self.cy = msg.k[5]
+            self.get_logger().info(f'Camera Intrinsics: fx={self.fx}, fy={self.fy}, cx={self.cx}, cy={self.cy}')
             self.camera_intrinsics_received = True
-
+   
     def image_callback(self, msg):
         if self.camera_intrinsics_received is None:
             self.get_logger().info('Camera is none.')
@@ -150,9 +151,9 @@ class HSVFilterNode(Node):
         self.contour_pub.publish(contour_msg)
 
 
-
-
-
+        # Here we use Nathan's hacky desmos LSRL solution:
+        #correction = (0.14645 * Z + 0.63488) * .01
+       
 def main(args=None):
     rclpy.init(args=args)
     node = HSVFilterNode()

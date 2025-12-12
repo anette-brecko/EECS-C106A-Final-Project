@@ -8,8 +8,6 @@ import numpy as np
 from rclpy.utilities import remove_ros_args
 import sys
 
-from planning.ik import IKPlanner
-
 class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
     def __init__(self):
         super().__init__('ball_grasp', 50)
@@ -21,7 +19,6 @@ class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
 
     def joint_state_callback(self, msg: JointState):
         if self.joint_state is not None:
-            #self.get_logger().info("Already moved")
             return
 
         self.get_logger().info("Getting ready!")
@@ -30,7 +27,7 @@ class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
 
         # 1) Move to Pre-Launch Position after gripping
         self.job_queue.append(0.2)
-        self.job_queue.append('toggle_grip')
+        self.job_queue.append('close_grip')
 
         self.get_logger().info("Computing IK to Launch state")        
         self.launch_state = self.ik_planner.compute_ik(self.joint_state, 0.406, .61, 0.3)
@@ -39,18 +36,18 @@ class UR7e_TestLaunch(UR7e_TrajectoryPlanner):
         # 5) Launch Ball
         self.get_logger().info("Computing trajectory")        
         self.job_queue.append(1.0)
-        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.launch_state, self.target_pose, 50, 1.5, filename=self.traj_save_filename)
+        throwing_trajectory, t_release = self.ik_planner.plan_to_target(
+            self.launch_state, 
+            self.target_pose, 
+            50, 
+            1.5, 
+            filename=self.traj_save_filename
+        )
         self.job_queue.append((throwing_trajectory, t_release))
 
         self.job_queue.append(0.2)
         self.job_queue.append(self.launch_state)
         self.execute_jobs()
-        self.reset()
-
-    def reset(self):
-        self.ball_pose = None
-        self.target_pose = None
-        self.ball_loaded = False
 
 
 def main(args=None):
