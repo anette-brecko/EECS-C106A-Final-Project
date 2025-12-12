@@ -270,7 +270,7 @@ def _build_problem(
                 robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
                 robot.joint_var_cls(jnp.arange(0, timesteps - 4)),
                 dt,
-                jnp.array([0.5 / timesteps])[None],
+                jnp.array([4.0 / timesteps])[None],
             ),
             pk.costs.five_point_jerk_cost(
                 robot.joint_var_cls(jnp.arange(6, timesteps)),
@@ -280,7 +280,7 @@ def _build_problem(
                 robot.joint_var_cls(jnp.arange(1, timesteps - 5)),
                 robot.joint_var_cls(jnp.arange(0, timesteps - 6)),
                 dt,
-                jnp.array([0.5 / timesteps])[None],
+                jnp.array([1.0 / timesteps])[None],
             ),
         ]
     )

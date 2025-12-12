@@ -34,7 +34,7 @@ class World:
 
         # Pillar parameters
         self.pillar_length = 0.28
-        self.pillar_height = 0.5
+        self.pillar_height = 0.7
         self.pillar_offset = 0.1
         self.visualize_world()
         self._visualize_joints(np.array(robot.joint_var_cls.default_factory()))
@@ -49,18 +49,7 @@ class World:
 
     def visualize_world(self):
         self.server.scene.add_grid("/grid", width=2, height=2, cell_size=0.1)
-        
-        # Visualize wall
-        self.server.scene.add_mesh_trimesh(
-            "wall",
-            trimesh.creation.box(
-                extents=(2.0, 0.1, 2.0),
-                transform=trimesh.transformations.translation_matrix(
-                    np.array([0.0, self.wall_distance, 0.0])
-                ),
-            ),
-        )
-
+         
         # Visualize table
         self.server.scene.add_mesh_trimesh(
             "table",
@@ -216,7 +205,7 @@ class World:
             f"/collision/pillar",
             vertices=mesh.vertices,
             faces=mesh.faces,
-            position=np.array([0.0, 0.0, -self.pillar_height / 2 - self.pillar_length / 2 - self.pillar_offset]),
+            position=np.array([0.0, 0.0, -self.pillar_height / 2 - self.pillar_length / 2]),
             color=(1.0, 0.0, 0.0),
             opacity=0.5
         )
@@ -235,23 +224,30 @@ class World:
                 opacity=0.5
             )
 
-        floor = trimesh.creation.box(
+        wall = trimesh.creation.box(
                 extents=(2.0, 2.0, 0.001),
                 transform=trimesh.transformations.translation_matrix(
                     np.array([0, 0.0, self.min_height])
                 ),
             )
 
+        wall = trimesh.creation.box(
+                extents=(2.0, 0.1, 2.0),
+                transform=trimesh.transformations.translation_matrix(
+                    np.array([0.0, self.wall_distance, 0.0])
+                ),
+            )
+
         self.server.scene.add_mesh_simple(
             "/collision/floor",
-            vertices=floor.vertices,
-            faces=floor.faces,
+            vertices=wall.vertices,
+            faces=wall.faces,
             color=(1.0, 0.0, 0.0),
             opacity=0.5,
         )
 
 
-        return ground_coll, table_coll, pillar_coll
+        return table_coll, wall_coll
         
 
     
