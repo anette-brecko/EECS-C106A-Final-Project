@@ -28,7 +28,8 @@ class TransformBallPose(Node):
 
     def ball_pose_callback(self, msg: PointStamped):
         self.ball_pose = self.transform_ball_pose(msg)
-        self.ball_pose_pub.publish(self.ball_pose)
+        if self.ball_pose is not None:
+            self.ball_pose_pub.publish(self.ball_pose)
 
 
     def transform_ball_pose(self, msg: PointStamped):
