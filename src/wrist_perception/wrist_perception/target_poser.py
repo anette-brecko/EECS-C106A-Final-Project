@@ -20,6 +20,8 @@ class VideoPoseEstimator(Node):
 
         self.bridge = CvBridge()
 
+        self.ready_count = 0
+
         # Kinect camera paramters
         self.fx = 388.198
         self.fy = 389.033
@@ -77,18 +79,17 @@ class VideoPoseEstimator(Node):
                 left_y = ((left_wrist_position[1]- centerY) * left_depth_measurement) / self.fy
                 right_x = ((right_wrist_position[0]- centerX) * right_depth_measurement) / self.fx
                 right_y = ((right_wrist_position[1]- centerY) * right_depth_measurement) / self.fy
-                left_measure = [left_x, left_y]
-                right_measure = [right_x, right_y]
                 #print("left: ", round(left_x, 2), round(left_y, 2), round(left_depth_measurement, 2), 
                 #"right: ", round(right_x, 2), round(right_y, 2), round(right_depth_measurement, 2))
                 dist = np.sqrt((left_x - right_x) ** 2 + (left_y - right_y) ** 2 + (left_depth_measurement - right_depth_measurement) ** 2)
-                if dist < 2.5:
+                if dist < 5:
                     # If Euclidean distance is less than 2.5 inches, convert to meters and send to publisher
-                    target_x = ((left_x + right_x) / 2) * 0.3048
-                    target_y = ((left_y + right_y) / 2) * 0.3048
-                    target_z = ((left_depth_measurement + right_depth_measurement) / 2) * 0.3048
+                    target_x = -((left_x + right_x) / 2) / 39.37
+                    target_y = ((left_y + right_y) / 2) / 39.37
+                    target_z = ((left_depth_measurement + right_depth_measurement) / 2) / 39.37
                     target_point = [target_x, target_y, target_z]
-                    print("Ready to toss!")
+                    print("Ready to toss! #", (self.ready_count + 1))
+                    self.ready_count += 1
                     self.publish_points(target_point)
         except IndexError:
             print("No person detected")

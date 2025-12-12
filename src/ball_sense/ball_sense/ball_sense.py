@@ -109,7 +109,7 @@ class HSVFilterNode(Node):
         numerator = self.camera_intrinsics[0] * self.camera_intrinsics[1] * self.surface_area
         depth = 0
             
-        if pixel_count > 50:
+        if pixel_count > 75:
             depth = np.sqrt(numerator / pixel_count)
 
             # self.get_logger().info(f'Ball {i+1}: depth={depth:.3f}m')
@@ -121,8 +121,8 @@ class HSVFilterNode(Node):
             u, v = ndimage.center_of_mass(mask)
 
             # TODO: Find X , Y , Z of ball
-            X = ((u - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
-            Y = ((v - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
+            X = ((v - self.camera_intrinsics[2]) * depth) / self.camera_intrinsics[0]
+            Y = ((u - self.camera_intrinsics[3]) * depth) / self.camera_intrinsics[1]
             Z = depth
 
             point_cam = PointStamped()
@@ -131,7 +131,7 @@ class HSVFilterNode(Node):
             point_cam.point.x = X
             point_cam.point.y = Y
             point_cam.point.z = Z
-            self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
+            #self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
             self.ball_position_pub.publish(point_cam)
         else:
             self.get_logger().info('No balls spotted')

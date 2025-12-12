@@ -27,10 +27,8 @@ class TransformWristPose(Node):
         self.wrist_pose = None
 
     def wrist_pose_callback(self, msg: PointStamped):
-        if self.wrist_pose is None:
-            self.wrist_pose = self.transform_wrist_pose(msg)
-        else:
-            self.wristl_pose_pub.publish(self.wrist_pose)
+        self.wrist_pose = self.transform_wrist_pose(msg)
+        self.wrist_pose_pub.publish(self.wrist_pose)
 
 
     def transform_wrist_pose(self, msg: PointStamped):
@@ -44,7 +42,7 @@ class TransformWristPose(Node):
         try:
             trans = self.tf_buffer.lookup_transform(
                 'base_link', 
-                'camera1',  
+                'kinect',  
                 rclpy.time.Time()
             )
 
