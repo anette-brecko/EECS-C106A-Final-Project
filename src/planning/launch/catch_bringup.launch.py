@@ -78,7 +78,7 @@ def generate_launch_description():
         executable='aruco_tf',
         name='aruco_tf_node',
         output='screen',
-      parameters=[{
+        parameters=[{
             'ar_marker': ar_marker,
         }]  
     )
@@ -112,13 +112,7 @@ def generate_launch_description():
     static_base_world = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        name='static_base_world',    # shutdown_on_any_exit = RegisterEventHandler(
-    #     OnProcessExit(
-    #         on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
-    #     )
-    # )        ar_marker_launch_arg,
-
-
+        name='static_base_world', 
         arguments=['0','0','0','0','0','0','1','base_link','world'],
         output='screen',
     )
@@ -134,6 +128,21 @@ def generate_launch_description():
     # MoveIt 
     ur_type = LaunchConfiguration("ur_type", default="ur7e")
     launch_rviz = LaunchConfiguration("launch_rviz", default="true")
+
+
+    # rviz_config_file = os.path.join(
+    #     get_package_share_directory('planning'), 
+    #     'rviz', 
+    #     'view.rviz'
+    # )
+
+    # rviz_node = Node(
+    #     package='rviz2',
+    #     executable='rviz2',
+    #     name='rviz2',
+    #     output='screen',
+    #     arguments=['-d', rviz_config_file], # This tells rviz to load your config
+    # )
 
     # Path to the MoveIt launch file
     moveit_launch_file = os.path.join(
@@ -164,11 +173,11 @@ def generate_launch_description():
         )
     )
 
-    # shutdown_on_any_exit = RegisterEventHandler(
-    #     OnProcessExit(
-    #         on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
-    #     )
-    # )
+    shutdown_on_any_exit = RegisterEventHandler(
+        OnProcessExit(
+            on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
+        )
+    )
     
     return LaunchDescription([
         gripper_node,
@@ -185,6 +194,7 @@ def generate_launch_description():
         transform_wrist_pose_node,
         ik_node,
         moveit_launch,
+        #rviz_node,
         shutdown_on_kinect_death,
-        # shutdown_on_any_exit
+        shutdown_on_any_exit
     ])

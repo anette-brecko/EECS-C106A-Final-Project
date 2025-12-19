@@ -273,17 +273,27 @@ class ArucoNode(rclpy.node.Node):
                 final_marker_ids.extend(turtlebot_markers)
 
             for i, marker_id in enumerate(final_marker_ids):
+                # 1. Build the 4x4 Transformation Matrix (Camera -> Marker)
+                #    This is what OpenCV gives us directly.
+                rmat, _ = cv2.Rodrigues(rvecs[i][0])
+                tvec = tvecs[i][0]
+                
+                T_camera_marker = np.eye(4)
+                T_camera_marker[:3, :3] = rmat
+                T_camera_marker[:3, 3] = tvec
+
+                # 2. Invert it to get (Marker -> Camera)
+                #    This gives us the position/rotation of the Camera relative to the Marker
+                T_marker_camera = np.linalg.inv(T_camera_marker)
+
+                # 3. Extract the new Translation and Rotation
                 pose = Pose()
-                pose.position.x = tvecs[i][0][0]
-                pose.position.y = tvecs[i][0][1]
-                pose.position.z = tvecs[i][0][2]
+                pose.position.x = T_marker_camera[0, 3]
+                pose.position.y = T_marker_camera[1, 3]
+                pose.position.z = T_marker_camera[2, 3]
 
-                rot_matrix = np.eye(4)
-                rot_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvecs[i][0]))[0]
-
-                # quat = tf_transformations.quaternion_from_matrix(rot_matrix)
-                # quat = transformations.quaternion_from_matrix(rot_matrix)
-                quat = quaternion_from_matrix(rot_matrix)
+                # Use your existing helper function for the quaternion
+                quat = quaternion_from_matrix(T_marker_camera)
 
                 pose.orientation.x = quat[0]
                 pose.orientation.y = quat[1]

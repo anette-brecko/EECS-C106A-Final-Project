@@ -3,14 +3,11 @@
 import rclpy
 from rclpy.node import Node
 import cv2
-import os
 from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PointStamped
 import cv2
 import numpy as np
-from ament_index_python.packages import get_package_share_directory
-from scipy import ndimage
 
 
 class HSVFilterNode(Node):
@@ -26,30 +23,29 @@ class HSVFilterNode(Node):
 
         # Declare HSV threshold parameters
 
-        self.declare_parameter("lower_h", 29)
-        self.declare_parameter("lower_s", 18)
-        self.declare_parameter("lower_v", 15)
-        self.declare_parameter("upper_h", 82)
-        self.declare_parameter("upper_s", 126)
-        self.declare_parameter("upper_v", 106)
+        # self.declare_parameter("lower_h", 29)
+        # self.declare_parameter("lower_s", 18)
+        # self.declare_parameter("lower_v", 15)
+        # self.declare_parameter("upper_h", 82)
+        # self.declare_parameter("upper_s", 126)
+        # self.declare_parameter("upper_v", 106)
 
-        # self.declare_parameter("lower_h", 6)
-        # self.declare_parameter("lower_s", 143)
-        # self.declare_parameter("lower_v", 153)
-        # self.declare_parameter("upper_h", 23)
-        # self.declare_parameter("upper_s", 255)
-        # self.declare_parameter("upper_v", 255)
+        self.declare_parameter("lower_h", 15)
+        self.declare_parameter("lower_s", 150)
+        self.declare_parameter("lower_v", 150)
+        self.declare_parameter("upper_h", 23)
+        self.declare_parameter("upper_s", 255)
+        self.declare_parameter("upper_v", 255)
 
-        # (29,18,29), (82,84,106)
-        # self.surface_area = 0.001551791655
-        #self.BALL_RADIUS = 0.022225
-        self.BALL_RADIUS = 0.02
+        #self.BALL_RADIUS = 0.022225 # Green ball
+        self.BALL_RADIUS = 0.02 * 29.0 / 28.0 # Fine tune ball radius
 
         # Subscriber
         self.subscription = self.create_subscription(Image, "/camera1/image_raw", self.image_callback, 10)
         self.camera_info_sub = self.create_subscription(CameraInfo, '/camera1/camera_info', self.camera_info_callback, 1)
 
         # Publishers
+        self.raw_mask_pub = self.create_publisher(Image, "raw_hsv_mask", 10)
         self.mask_pub = self.create_publisher(Image, "hsv_mask", 10)
         self.filtered_pub = self.create_publisher(Image, "hsv_filtered", 10)
         self.contour_pub = self.create_publisher(Image, "circ_contour", 10)
@@ -61,8 +57,6 @@ class HSVFilterNode(Node):
         self.get_logger().info("HSV Filter Node started!")
 
     def camera_info_callback(self, msg):
-        print("hi")
-        self.get_logger().info(f"Camera Info: {msg}")
         if not self.camera_intrinsics_received:
             self.get_logger().info("Recieved Camera Info")
             self.fx = msg.k[0]
@@ -73,7 +67,6 @@ class HSVFilterNode(Node):
             self.camera_intrinsics_received = True
    
     def image_callback(self, msg):
-        print("hellooo")
         if self.camera_intrinsics_received is None:
             self.get_logger().info('Camera is none.')
             return
@@ -100,11 +93,11 @@ class HSVFilterNode(Node):
         ])
 
         # Create mask
-        mask = cv2.inRange(hsv, lower, upper)
+        raw_mask = cv2.inRange(hsv, lower, upper)
 
         # Clean up mask
         kernel = np.ones((7,7),np.uint8)
-        mask = cv2.erode(mask, kernel, iterations=2)
+        mask = cv2.erode(raw_mask, kernel, iterations=2)
         mask = cv2.dilate(mask, kernel, iterations=2)
 
         #mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
@@ -120,7 +113,10 @@ class HSVFilterNode(Node):
             c = max(contours, key=cv2.contourArea)
         
             # Fit a circle around the contour
-            ((u, v), radius_pix) = cv2.minEnclosingCircle(c)
+            (u, v), (major_axis, minor_axis), angle = cv2.fitEllipse(c)
+
+            # Average the axes to estimate the radius (axes are diameters)
+            radius_pix = (major_axis + minor_axis) / 4
             
             # Only proceed if the object is big enough (filter noise)
             if radius_pix > 10:
@@ -149,18 +145,17 @@ class HSVFilterNode(Node):
                 self.get_logger().info('No balls spotted')
 
         # Convert back to ROS2 Image messages
+        raw_mask_msg = self.bridge.cv2_to_imgmsg(raw_mask, encoding="mono8")
         mask_msg = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
         filtered_msg = self.bridge.cv2_to_imgmsg(filtered, encoding="bgr8")
         contour_msg = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
 
         # Publish
+        self.raw_mask_pub.publish(raw_mask_msg)
         self.mask_pub.publish(mask_msg)
         self.filtered_pub.publish(filtered_msg)
         self.contour_pub.publish(contour_msg)
 
-
-        # Here we use Nathan's hacky desmos LSRL solution:
-        #correction = (0.14645 * Z + 0.63488) * .01
        
 def main(args=None):
     rclpy.init(args=args)
