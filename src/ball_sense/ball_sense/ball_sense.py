@@ -112,36 +112,37 @@ class HSVFilterNode(Node):
             c = max(contours, key=cv2.contourArea)
         
             # Fit a circle around the contour
-            (u, v), (major_axis, minor_axis), angle = cv2.fitEllipse(c)
+            if len(c) > 5:
+                (u, v), (major_axis, minor_axis), angle = cv2.fitEllipse(c)
 
-            # Average the axes to estimate the radius (axes are diameters)
-            radius_pix = (major_axis + minor_axis) / 4
-            
-            # Only proceed if the object is big enough (filter noise)
-            if radius_pix > 10:
-                # Draw the circle and centroid on the frame
-                cv2.circle(frame, (int(u), int(v)), int(radius_pix), (0, 255, 255), 2)
-                cv2.circle(frame, (int(u), int(v)), 5, (0, 0, 255), -1)
-          
-                # Use geometric mean of focal lengths to get depth
-                depth = np.sqrt(self.fx * self.fy) * self.BALL_RADIUS / radius_pix
-
-                # Find X , Y , Z of ball
-                X = ((u - self.cx) * depth) / self.fx
-                Y = ((v - self.cy) * depth) / self.fy
-                Z = depth
-
-                point_cam = PointStamped()
-                point_cam.header.stamp = msg.header.stamp
-                point_cam.header.frame_id = 'camera1'
-                point_cam.point.x = X
-                point_cam.point.y = Y
-                point_cam.point.z = Z
+                # Average the axes to estimate the radius (axes are diameters)
+                radius_pix = (major_axis + minor_axis) / 4
                 
-                self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
-                self.ball_position_pub.publish(point_cam)
-            else:
-                self.get_logger().info('No balls spotted')
+                # Only proceed if the object is big enough (filter noise)
+                if radius_pix > 10:
+                    # Draw the circle and centroid on the frame
+                    cv2.circle(frame, (int(u), int(v)), int(radius_pix), (0, 255, 255), 2)
+                    cv2.circle(frame, (int(u), int(v)), 5, (0, 0, 255), -1)
+                
+                    # Use geometric mean of focal lengths to get depth
+                    depth = np.sqrt(self.fx * self.fy) * self.BALL_RADIUS / radius_pix
+
+                    # Find X , Y , Z of ball
+                    X = ((u - self.cx) * depth) / self.fx
+                    Y = ((v - self.cy) * depth) / self.fy
+                    Z = depth
+
+                    point_cam = PointStamped()
+                    point_cam.header.stamp = msg.header.stamp
+                    point_cam.header.frame_id = 'camera1'
+                    point_cam.point.x = X
+                    point_cam.point.y = Y
+                    point_cam.point.z = Z
+                    
+                    self.get_logger().info(f'Ball at: {X}, {Y}, {Z}')
+                    self.ball_position_pub.publish(point_cam)
+                else:
+                    self.get_logger().info('No balls spotted')
 
         # Convert back to ROS2 Image messages
         raw_mask_msg = self.bridge.cv2_to_imgmsg(raw_mask, encoding="mono8")
