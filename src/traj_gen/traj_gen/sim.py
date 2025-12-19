@@ -64,7 +64,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     dt,
                     robot_max_reach=0.85 * 0.95, # max 
                     max_vel=13, 
-                    num_samples=200,
+                    num_samples=300,
                     num_samples_iterated=4,
                 )
                 traj, t_release, t_target = solutions[0]

@@ -135,58 +135,52 @@ def _build_problem(
     time_release_var = TimeVar(0)     
     time_target_var = TimeVar(1)
 
-    robot_batched = jax.tree.map(lambda x: x[None], robot)
-    robot_coll_batched = jax.tree.map(lambda x: x[None], robot_coll)
+
+    robot_unbatched = robot
+    robot = jax.tree.map(lambda x: x[None], robot)  # Add batch dimension.
+    robot_coll = jax.tree.map(lambda x: x[None], robot_coll)  # Add batch dimension.
 
     # Basic regularization / limit costs.
-    factors: list[jaxls.Cost] = [
-        pk.costs.limit_cost(
-            robot_batched,
-            traj_vars,
-            jnp.array([100.0])[None],
-        )
-    ]
+    factors: list[jaxls.Cost] = []
 
-    def compute_world_coll_residual(
-        vals: jaxls.VarValues,
-        robot: pk.Robot,
-        robot_coll: pk.collision.RobotCollision,
-        world_coll_obj: pk.collision.CollGeom,
-        prev_traj_vars: jaxls.Var[jax.Array],
-        curr_traj_vars: jaxls.Var[jax.Array],
-    ):
-        coll = robot_coll.get_swept_capsules(
-            robot, vals[prev_traj_vars], vals[curr_traj_vars]
+    # HARD CONSTRAINTS
+
+    @jaxls.Cost.factory(kind="constraint_eq_zero", name="start_pose_constraint")
+    def start_pose_constraint(vals: jaxls.VarValues, var) -> jax.Array:
+        return (vals[var] - start_cfg).flatten()
+
+    factors.append(start_pose_constraint(robot.joint_var_cls(jnp.arange(0, 2))))
+    
+    factors.append(pk.costs.limit_constraint(robot, traj_vars))
+
+    factors.append(
+        pk.costs.limit_velocity_constraint(
+            robot,
+            robot.joint_var_cls(jnp.arange(1, timesteps)),
+            robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
+            dt,
         )
-        dist = pk.collision.collide(
-            coll.reshape((-1, 1)), world_coll_obj.reshape((1, -1))
-        )
-        colldist = pk.collision.colldist_from_sdf(dist, 0.1)
-        return (colldist * 20.0).flatten()
+    )
 
     for world_coll_obj in world_coll:
         factors.append(
-            jaxls.Cost(
-                compute_world_coll_residual,
-                (
-                    robot_batched,
-                    robot_coll_batched,
-                    jax.tree.map(lambda x: x[None], world_coll_obj),
-                    robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-                    robot.joint_var_cls(jnp.arange(1, timesteps)),
-                ),
-                name="World Collision (sweep)",
+            pk.costs.world_collision_constraint(
+                robot,
+                robot_coll,
+                traj_vars,
+                jax.tree.map(lambda x: x[None], world_coll_obj),
+                0.01,
             )
-        )
+        )    # Start / end pose constraints.
 
-    # Start / end pose constraints.
+    # SOFT CONSTRAINTS
     factors.append(
         pk.costs.self_collision_cost(
-            robot_batched,
-            robot_coll_batched,
+            robot,
+            robot_coll,
             traj_vars,
             0.003,
-            100.0 / timesteps,
+            500.0 / timesteps,
         )
     )
 
@@ -226,13 +220,9 @@ def _build_problem(
         velocity = (-3 * q_t + 4 * q_tp1 - 1 * q_tp2) / (2 * dt)
         
         return (velocity * 20.0).flatten()
+
     factors.extend(
         [
-            jaxls.Cost(
-                lambda vals, var: ((vals[var] - start_cfg) * 100.0).flatten(),
-                (robot.joint_var_cls(jnp.arange(0, 1)),),
-                name="start_pose_constraint",
-            ),
             terminal_velocity_limit_cost(
                 robot.joint_var_cls(jnp.arange(timesteps-5, timesteps)),
                 robot.joint_var_cls(jnp.arange(timesteps-6, timesteps - 1)),
@@ -250,18 +240,19 @@ def _build_problem(
         ]
     )
 
-    # Velocity / acceleration / jerk minimization.
+    # Smoothness
     factors.extend(
         [
-            pk.costs.five_point_velocity_cost(
-                robot_batched,
-                robot.joint_var_cls(jnp.arange(4, timesteps)),
-                robot.joint_var_cls(jnp.arange(3, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 4)),
-                dt,
-                jnp.array([50.0 / timesteps])[None],
+            pk.costs.rest_cost(
+                traj_vars,
+                traj_vars.default_factory()[None],
+                jnp.array([0.01])[None],
             ),
+            pk.costs.smoothness_cost(
+                robot.joint_var_cls(jnp.arange(1, timesteps)),
+                robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
+                jnp.array([1])[None],
+            ),  
             pk.costs.five_point_acceleration_cost(
                 robot.joint_var_cls(jnp.arange(2, timesteps - 2)),
                 robot.joint_var_cls(jnp.arange(4, timesteps)),
@@ -271,75 +262,56 @@ def _build_problem(
                 dt,
                 jnp.array([4.0 / timesteps])[None],
             ),
-            pk.costs.five_point_jerk_cost(
-                robot.joint_var_cls(jnp.arange(6, timesteps)),
-                robot.joint_var_cls(jnp.arange(5, timesteps - 1)),
-                robot.joint_var_cls(jnp.arange(4, timesteps - 2)),
-                robot.joint_var_cls(jnp.arange(2, timesteps - 4)),
-                robot.joint_var_cls(jnp.arange(1, timesteps - 5)),
-                robot.joint_var_cls(jnp.arange(0, timesteps - 6)),
-                dt,
-                jnp.array([1.0 / timesteps])[None],
-            ),
-        ]
+            ]
     )
+
 
      # Trajectory tossing
     @jaxls.Cost.factory(name="toss_target_cost")
     def toss_target_cost(
         vals: jaxls.VarValues,
-        traj_vars: jaxls.Var[jax.Array],
+        traj_vars_tuple: tuple[jaxls.Var[jax.Array], ...],
         time_release: TimeVar,
         time_target: TimeVar,
     ):
         t_rel = vals[time_release].squeeze()
         t_tgt = vals[time_target].squeeze()
 
-        # --- DEBUG PRINTING START ---
-        # Get the full trajectory
-        qs_full = vals[traj_vars]
+        # STACK: Now safely returns (20, 6)
+        qs_full = jnp.stack([vals[v] for v in traj_vars_tuple])
+
+        delta_t = t_tgt - t_rel
         
-        # Calculate indices
         max_idx = qs_full.shape[0] - 2
         idx_float = t_rel / dt
         idx_floor = jnp.clip(jnp.floor(idx_float).astype(int), 0, max_idx)
         idx_ceil = idx_floor + 1
         alpha = idx_float - idx_floor
-
-        # Retrieve neighbors
-        q_curr = qs_full[idx_floor.squeeze()]
-        q_next = qs_full[idx_ceil.squeeze()]
-
-        # Interpolate
-        q_release = (1.0 - alpha) * q_curr + alpha * q_next
-
-        # PRINT SHAPES HERE
-        print("DEBUG: qs_full shape: {}", qs_full.shape)
-        print("DEBUG: q_release shape: {}", q_release.shape)
-
-        jax.debug.print("DEBUG: qs_full shape: {}", qs_full.shape)
-        jax.debug.print("DEBUG: q_release shape: {}", q_release.shape)
-        # --- DEBUG PRINTING END ---
-
-        # Continue with logic (this will likely crash in forward_kinematics)
-        # We explicitly DO NOT fix the shape here so we can see the crash cause
         
-        # Calculate velocity
-        q_prev = qs_full[idx_floor.squeeze() - 1]
-        q_next_next = qs_full[idx_ceil.squeeze() + 1]
+        i_floor = idx_floor.squeeze()
+        i_ceil = idx_ceil.squeeze()
+
+        q_prev = qs_full[i_floor - 1].squeeze()
+        q_curr = qs_full[i_floor].squeeze()     
+        q_next = qs_full[i_ceil].squeeze()      
+        q_next_next = qs_full[i_ceil + 1].squeeze()
+
+        q_release = (1.0 - alpha) * q_curr + alpha * q_next
+        q_release = q_release.reshape(q_curr.shape) 
+        
         q_dot_floor = (q_next - q_prev) / (2.0 * dt)
         q_dot_ceil = (q_next_next - q_curr) / (2.0 * dt) 
         q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
-        
-        q = robot.forward_kinematics(q_release)
+        q_dot_release = q_dot_release.reshape(q_curr.shape)
+
+        q = robot_unbatched.forward_kinematics(q_release)
         x0 = q[..., target_link_index, 4:]
         
-        jacobian = compute_ee_spatial_jacobian(robot, q_release, jnp.array([target_link_index]))
+        jacobian = compute_ee_spatial_jacobian(robot_unbatched, q_release, jnp.array([target_link_index]))
         twist = jacobian @ q_dot_release
         v0 = twist[:3][None]
         
         gravity_vec = jnp.array([0.0, 0.0, -g]) 
-        delta_t = t_tgt - t_rel
         pred_pos = x0 + v0 * delta_t + 0.5 * gravity_vec * (delta_t ** 2)
 
         pos_error = ((pred_pos - target_pos) * 300.0).flatten()
@@ -351,7 +323,8 @@ def _build_problem(
         v_dir = v0 / v_norm
 
         align_error = ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
-        return jnp.concatenate([pos_error, align_error])        
+        return jnp.concatenate([pos_error, align_error])    
+
     @jaxls.Cost.factory(name="positive_time_cost")
     def positive_time_cost(
         vals: jaxls.VarValues,
@@ -368,15 +341,15 @@ def _build_problem(
 
         # 1. Release Time Lower Bound: t_rel >= 0
         # If t_rel is -0.1, error is 0.1
-        err_rel_low = jax.nn.softplus(-t_rel - 3 * dt)
+        err_rel_low = jnp.maximum(0.0, -t_rel - 3 * dt)
 
         # 2. Release Time Upper Bound: t_rel <= total_duration
         # If t_rel is 5.1 and max is 5.0, error is 0.1
-        err_rel_high = jax.nn.softplus(t_rel - total_duration - 3 * dt)
+        err_rel_high = jnp.maximum(0.0, t_rel - total_duration - 3 * dt)
 
         # 3. Flight Time Constraint: t_tgt >= t_rel + min_flight
         # If t_tgt is too early, this error grows
-        err_flight = jax.nn.softplus((t_rel + min_flight_time) - t_tgt)
+        err_flight = jnp.maximum(0.0, (t_rel + min_flight_time) - t_tgt)
         
         err = jnp.array([err_rel_low, err_rel_high, err_flight])
 
@@ -458,11 +431,7 @@ def _build_problem(
             ensure_acceleration_at_release(traj_vars, time_release_var, dt),
             maximize_release_velocity(traj_vars, time_release_var, dt),
             positive_time_cost(time_release_var, time_target_var),
-            toss_target_cost(
-                traj_vars,
-                time_release_var, 
-                time_target_var
-            )
+            toss_target_cost(tuple([traj_vars[i] for i in range(timesteps)]), time_release_var, time_target_var)
         ]
     ) 
    
