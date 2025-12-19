@@ -36,18 +36,12 @@ class UR7e_StateMachine(Node):
         self.trajectory_planner = TrajectoryPlanner()
 
         self.joint_state = None
-<<<<<<< HEAD
-<<<<<<< HEAD
         self.moving = False
 
         self.gripper_loose = 60
         self.gripper_tight = 80
         self.gripper_open = 0
         self.loose_delay = 0.1
-=======
->>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
-=======
->>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 

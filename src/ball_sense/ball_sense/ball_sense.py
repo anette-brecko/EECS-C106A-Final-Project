@@ -22,8 +22,6 @@ class HSVFilterNode(Node):
         # Brightness = 150, Contrast = 160, Saturation = 175, Gain = Max? 255?
 
         # Declare HSV threshold parameters
-<<<<<<< HEAD
-<<<<<<< HEAD
 
         # self.declare_parameter("lower_h", 29)
         # self.declare_parameter("lower_s", 18)
@@ -41,29 +39,6 @@ class HSVFilterNode(Node):
 
         #self.BALL_RADIUS = 0.022225 # Green ball
         self.BALL_RADIUS = 0.02 * 28.0 / 28.0 # Fine tune ball radius
-=======
-=======
->>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
-        # self.declare_parameter("lower_h", 138.9)
-        # self.declare_parameter("lower_s", 90)
-        # self.declare_parameter("lower_v", 8)
-        # self.declare_parameter("upper_h", 167.4)
-        # self.declare_parameter("upper_s", 41)
-        # self.declare_parameter("upper_v", 36)
-        self.declare_parameter("lower_h", 29)
-        self.declare_parameter("lower_s", 18)
-        self.declare_parameter("lower_v", 15)
-        self.declare_parameter("upper_h", 82)
-        self.declare_parameter("upper_s", 126)
-        self.declare_parameter("upper_v", 106)
-        # (29,18,29), (82,84,106)
-        self.surface_area = 0.001551791655
-        self.BALL_RADIUS = 0.022225
-<<<<<<< HEAD
->>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
-=======
->>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
-
         # Subscriber
         self.subscription = self.create_subscription(Image, "/camera1/image_raw", self.image_callback, 10)
         self.camera_info_sub = self.create_subscription(CameraInfo, '/camera1/camera_info', self.camera_info_callback, 1)
