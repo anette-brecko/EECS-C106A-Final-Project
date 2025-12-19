@@ -85,6 +85,12 @@ def solve_ik_with_collision(
 
     factors.append(joint_similarity_cost(joint_var))
 
+    factors.append(pk.costs.limit_cost(
+                robot,
+                joint_var,
+                jnp.array(100.0),
+            ))
+
     sol = jaxls.LeastSquaresProblem(factors, [joint_var]).analyze().solve(verbose=False)
     return sol[joint_var]
 
@@ -115,11 +121,6 @@ def solve_single_ik_with_collision(
     ]
     factors.extend(
         [
-            pk.costs.limit_cost(
-                robot,
-                joint_var,
-                jnp.array(100.0),
-            ),
             pk.costs.rest_cost(
                 joint_var,
                 jnp.array(joint_var.default_factory()),
@@ -153,6 +154,14 @@ def solve_single_ik_with_collision(
             for world_coll in world_coll_list
         ]
     )
+
+    factors.append(pk.costs.limit_cost(
+                robot,
+                joint_var,
+                jnp.array(100.0),
+            ))
+
+
 
     sol = jaxls.LeastSquaresProblem(factors, [joint_var]).analyze().solve(verbose=False)
     return sol[joint_var]

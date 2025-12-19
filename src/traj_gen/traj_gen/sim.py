@@ -34,12 +34,11 @@ def main(filename: str, timesteps: int, time_horizon: float):
     world = World(robot, urdf, target_link_name)
 
     # Generate example trajectory
-    #start_pos = np.array([0, -.5, .7])
-    #start_wxyz = np.array([0, 0, 0, 1])
-    #target_link_indx = robot.links.names.index(target_link_name)
-    #start_cfg = solve_ik_with_collision(robot, robot_coll, world.gen_world_coll(), target_link_indx, default_cfg, start_pos, start_wxyz)
+    start_pos = np.array([0, -.5, .7])
+    start_wxyz = np.array([0, 0, 0, 1])
+    target_link_indx = robot.links.names.index(target_link_name)
+    start_cfg = solve_ik_with_collision(robot, robot_coll, world.gen_world_coll(), target_link_indx, default_cfg, start_pos, start_wxyz)
     
-    start_cfg = default_cfg
     target_pos = np.array([-0.3, 2.0, .2])
     dt = time_horizon / timesteps
 
@@ -53,7 +52,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
         # Check if we need to solve again
         match status:
             case "regenerate":
-                real_solutions, solutions = solve_by_sampling(
+                solutions = solve_by_sampling(
                     robot,
                     robot_coll,
                     world.gen_world_coll(),
@@ -64,8 +63,12 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     dt,
                     robot_max_reach=0.85 * 0.95, # max 
                     max_vel=13, 
-                    num_samples=200,
+                    num_samples=300,
+<<<<<<< HEAD
                     num_samples_iterated=4,
+=======
+                    num_samples_iterated=5,
+>>>>>>> parent of 8e04727 (Added calibration stuff and some more trajectory costs.)
                 )
                 traj, t_release, t_target = solutions[0]
                 idx = 0
@@ -85,8 +88,6 @@ def main(filename: str, timesteps: int, time_horizon: float):
                         dt
                     )
                 print("Saving")
-                traj, t_release, t_target = real_solutions[idx]
-             
         status = world.visualize_all(
                 start_cfg, 
                 target_pos, 
