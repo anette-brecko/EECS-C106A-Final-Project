@@ -153,15 +153,6 @@ def _build_problem(
     
     factors.append(pk.costs.limit_constraint(robot, traj_vars))
 
-    factors.append(
-        pk.costs.limit_velocity_constraint(
-            robot,
-            robot.joint_var_cls(jnp.arange(1, timesteps)),
-            robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-            dt,
-        )
-    )
-
     for world_coll_obj in world_coll:
         factors.append(
             pk.costs.world_collision_constraint(
@@ -251,8 +242,17 @@ def _build_problem(
             pk.costs.smoothness_cost(
                 robot.joint_var_cls(jnp.arange(1, timesteps)),
                 robot.joint_var_cls(jnp.arange(0, timesteps - 1)),
-                jnp.array([1])[None],
+                jnp.array([5])[None],
             ),  
+            pk.costs.five_point_velocity_cost(
+                robot,
+                robot.joint_var_cls(jnp.arange(4, timesteps)),
+                robot.joint_var_cls(jnp.arange(3, timesteps - 1)),
+                robot.joint_var_cls(jnp.arange(1, timesteps - 3)),
+                robot.joint_var_cls(jnp.arange(0, timesteps - 4)),
+                dt,
+                jnp.array([100.0 / timesteps])[None],
+            ), 
             pk.costs.five_point_acceleration_cost(
                 robot.joint_var_cls(jnp.arange(2, timesteps - 2)),
                 robot.joint_var_cls(jnp.arange(4, timesteps)),
@@ -428,8 +428,8 @@ def _build_problem(
     
     factors.extend(
         [
-            ensure_acceleration_at_release(traj_vars, time_release_var, dt),
-            maximize_release_velocity(traj_vars, time_release_var, dt),
+            #ensure_acceleration_at_release(traj_vars, time_release_var, dt),
+            #maximize_release_velocity(traj_vars, time_release_var, dt),
             positive_time_cost(time_release_var, time_target_var),
             toss_target_cost(tuple([traj_vars[i] for i in range(timesteps)]), time_release_var, time_target_var)
         ]
