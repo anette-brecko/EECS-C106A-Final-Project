@@ -1,5 +1,5 @@
 # ROS Libraries
-from gripper_msgs.srv import SetInteger  # Simple request/response: empty request, bool+string response
+from std_srvs.srv import Trigger
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -30,18 +30,21 @@ class UR7e_StateMachine(Node):
             '/scaled_joint_trajectory_controller/follow_joint_trajectory'
         )
 
-        self.gripper_cli = self.create_client(SetInteger, '/set_gripper')
+        self.gripper_cli = self.create_client(Trigger, '/toggle_gripper')
 
         self.ik_planner = IKPlanner()
         self.trajectory_planner = TrajectoryPlanner()
 
         self.joint_state = None
+<<<<<<< HEAD
         self.moving = False
 
         self.gripper_loose = 60
         self.gripper_tight = 80
         self.gripper_open = 0
         self.loose_delay = 0.1
+=======
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
@@ -70,39 +73,26 @@ class UR7e_StateMachine(Node):
             self.get_logger().info("Planned to launch")
             self._set_speed_slider(1.0)
             self._execute_joint_trajectory(next_job[0], release_time=next_job[1])
-        elif next_job == 'open_grip':
-            self.get_logger().info("Opening gripper")
-            self._set_gripper(self.gripper_open)
-        elif next_job == 'close_grip':
-            self.get_logger().info("Closing gripper")
-            self._set_gripper(self.gripper_tight)
+        elif next_job == 'toggle_grip':
+            self.get_logger().info("Toggling gripper")
+            self._toggle_gripper()
         else:
             self.get_logger().error("Unknown job type.")
             self.execute_jobs()  # Proceed to next job
 
-    def _set_gripper(self, pos):
-        # 1. Check if service is ready (without blocking the loop)
-        if not self.gripper_cli.service_is_ready():
+    def _toggle_gripper(self):
+        if not self.gripper_cli.wait_for_service(timeout_sec=5.0):
             self.get_logger().error('Gripper service not available')
+            rclpy.shutdown()
             return
 
-        req = SetInteger.Request()
-        req.data = int(pos) 
-        
-        self.get_logger().info('Sending gripper toggle request...')
+        req = Trigger.Request()
         future = self.gripper_cli.call_async(req)
-        future.add_done_callback(self._on_gripper_toggled)
+        # wait for 2 seconds
+        rclpy.spin_until_future_complete(self, future, timeout_sec=2.0)
 
-    def _on_gripper_toggled(self, future):
-        try:
-            response = future.result()
-            self.get_logger().info(f'Gripper toggled successfully: {response.message}')
-
-            if not self.moving:
-                self.execute_jobs()
-            
-        except Exception as e:
-            self.get_logger().error(f'Service call failed: {e}')
+        self.get_logger().info('Gripper toggled.')
+        self.execute_jobs()  # Proceed to next job
 
             
     def _execute_joint_trajectory(self, joint_traj, release_time=None):
@@ -114,7 +104,7 @@ class UR7e_StateMachine(Node):
 
         self.get_logger().info('Sending trajectory to controller...')
 
-        self.moving = True
+        self._release_time = release_time
 
         send_future = self.exec_ac.send_goal_async(goal)
         send_future.add_done_callback(lambda future: self._on_goal_sent(future, release_time))
@@ -132,25 +122,14 @@ class UR7e_StateMachine(Node):
         result_future.add_done_callback(self._on_exec_done)
     
         if release_time is not None:
-            self._loose_timer = self.create_timer(
-                release_time / self.trajectory_planner.speed - self.loose_delay, # Scale to speed 
-                self._timer_loose_callback
-            )
             self._release_timer = self.create_timer(
-                release_time / self.trajectory_planner.speed, # Scale to speed 
+                release_time / self.full_speed, # Scale to speed 
                 self._timer_release_callback
             )
-    
-    def _timer_loose_callback(self):
-        self.get_logger().info("TIMER FIRED: Loosening Gripper!")
-        self._set_gripper(self.gripper_loose)
-        
-        # Destroy timer so it doesn't fire again
-        self._loose_timer.destroy()
 
     def _timer_release_callback(self):
         self.get_logger().info("TIMER FIRED: Releasing Gripper!")
-        self._set_gripper(self.gripper_open)
+        self._toggle_gripper()
         
         # Destroy timer so it doesn't fire again
         self._release_timer.destroy()
@@ -159,7 +138,6 @@ class UR7e_StateMachine(Node):
         try:
             result = future.result().result
             self.get_logger().info('Execution complete.')
-            self.moving = False
             self.execute_jobs()  # Proceed to next job
         except Exception as e:
             self.get_logger().error(f'Execution failed: {e}')

@@ -22,7 +22,11 @@ class ArucoConstantTransformPublisher(Node):
             [ 0, 0, 0, 1.0]
         ])
 
+<<<<<<< HEAD
         G = np.linalg.inv(G)
+=======
+        # G = np.linalg.inv(G) THIS SHOULD BE HERE!!!
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 
         # Create TransformStamped
         self.transform = TransformStamped()

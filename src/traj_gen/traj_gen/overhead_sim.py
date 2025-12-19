@@ -33,6 +33,12 @@ def main(filename: str, timesteps: int, time_horizon: float):
     # Initialize world
     world = World(robot, urdf, target_link_name)
 
+    # Generate example trajectory
+    start_pos = np.array([0, -.5, .7])
+    start_wxyz = np.array([0, 0, 0, 1])
+    target_link_indx = robot.links.names.index(target_link_name)
+    start_cfg = solve_ik_with_collision(robot, robot_coll, world.gen_world_coll(), target_link_indx, default_cfg, start_pos, start_wxyz)
+    
     target_pos = np.array([-0.3, 2.0, .2])
     dt = time_horizon / timesteps
 
@@ -51,7 +57,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     robot_coll,
                     world.gen_world_coll(),
                     target_link_name,
-                    defualt_cfg,
+                    start_cfg,
                     target_pos,
                     timesteps,
                     dt,

@@ -31,8 +31,6 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'test_gripper = planning.gripper_teleop:main',
-            'enable_gripper = planning.gripper:main',
             'main = planning.main:main',
             'aruco_tf = planning.aruco_tf_transform:main',
             'kinect_tf = planning.kinect_tf_transform:main',
