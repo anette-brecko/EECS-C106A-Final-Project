@@ -67,6 +67,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                 idx = (idx + 1) % len(solutions)
                 traj, t_release, t_target = solutions[idx]
             case "execute":
+                traj, t_release, t_target = real_solutions[idx]
                 if filename:
                     save_trajectory(
                         filename,
@@ -78,7 +79,6 @@ def main(filename: str, timesteps: int, time_horizon: float):
                         timesteps,
                         dt
                     )
-                traj, t_release, t_target = real_solutions[idx]
                 print("Saving")
         status = world.visualize_all(
                 start_cfg, 

@@ -52,7 +52,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
         # Check if we need to solve again
         match status:
             case "regenerate":
-                solutions = solve_by_sampling(
+                real_solutions, solutions = solve_by_sampling(
                     robot,
                     robot_coll,
                     world.gen_world_coll(),
@@ -72,6 +72,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                 idx = (idx + 1) % len(solutions)
                 traj, t_release, t_target = solutions[idx]
             case "execute":
+                traj, t_release, t_target = real_solutions[idx]
                 if filename:
                     save_trajectory(
                         filename,

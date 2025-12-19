@@ -157,9 +157,9 @@ def generate_samples(
         """Generates a position samples from a uniform distribution in a user defined box"""
         # Should have positive x-axis and z-axis bias
         while True:
-            x = onp.random.uniform(-.3, .8)
-            y = onp.random.uniform(-.8, .8)
-            z = onp.random.uniform(-.3, .8)
+            x = onp.random.uniform(-.2, .2)
+            y = onp.random.uniform(-.8, .2)
+            z = onp.random.uniform(.5, .9)
             x_rel = onp.array([x, y, z])
             if onp.linalg.norm(x_rel) > robot_max_reach: continue
             return x_rel
@@ -235,27 +235,44 @@ def generate_samples(
         t_mid = t_rel * onp.random.uniform(0.2, 0.4)
 
     
-        waypoint_trajectory = cubic_bezier_trajectory(q_0, q_0, q_mid, q_mid)
+        # waypoint_trajectory = cubic_bezier_trajectory(q_0, q_0, q_mid, q_mid)
 
-        # Generate a bezier curve tranjectory between joint configurations
-        t_speed_up = t_rel - t_mid
-        release_trajectory = cubic_bezier_trajectory(q_mid, q_mid, q_rel - t_speed_up / 3.0 * q_dot_rel,  q_rel)
+        # # Generate a bezier curve tranjectory between joint configurations
+        # t_speed_up = t_rel - t_mid
+        # release_trajectory = cubic_bezier_trajectory(q_mid, q_mid, q_rel - t_speed_up / 3.0 * q_dot_rel,  q_rel)
+
+        # t_deaccel = timesteps * dt - t_rel
+        # deaccel_trajectory = quadratic_bezier_trajectory(q_rel, q_rel + t_deaccel / 2.0 * q_dot_rel, q_rel + t_deaccel / 2.0 * q_dot_rel)
+
+        # def traj(t):
+        #     if t <= t_mid:
+        #         return waypoint_trajectory(t / t_mid)
+        #     elif t > t_mid and t <= t_rel:
+        #         return release_trajectory( (t - t_mid) / t_speed_up )
+        #     else:
+        #         return deaccel_trajectory( (t - t_rel) / t_deaccel )
+
+        # traj_points = [traj(t) for t in dt * onp.arange(0, timesteps)]
+        # traj_points = onp.array(jnp.stack(traj_points))
+        # samples.append((traj_points, t_rel, t_rel + dt_air))
+        # 
+        # if (len(samples) % 10) == 0 and samples: print(f'Generated {len(samples)} samples')
+        
+        release_trajectory = cubic_bezier_trajectory(q_0, q_0, q_rel - t_rel / 3.0 * q_dot_rel,  q_rel)
 
         t_deaccel = timesteps * dt - t_rel
         deaccel_trajectory = quadratic_bezier_trajectory(q_rel, q_rel + t_deaccel / 2.0 * q_dot_rel, q_rel + t_deaccel / 2.0 * q_dot_rel)
 
         def traj(t):
-            if t <= t_mid:
-                return waypoint_trajectory(t / t_mid)
-            elif t > t_mid and t <= t_rel:
-                return release_trajectory( (t - t_mid) / t_speed_up )
+            if  t <= t_rel:
+                return release_trajectory( t / t_rel )
             else:
                 return deaccel_trajectory( (t - t_rel) / t_deaccel )
 
         traj_points = [traj(t) for t in dt * onp.arange(0, timesteps)]
         traj_points = onp.array(jnp.stack(traj_points))
         samples.append((traj_points, t_rel, t_rel + dt_air))
-        
+        # 
         if (len(samples) % 10) == 0 and samples: print(f'Generated {len(samples)} samples')
     
     return samples
