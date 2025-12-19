@@ -11,7 +11,7 @@ class ArucoConstantTransformPublisher(Node):
         super().__init__('aruco_constant_tf_publisher')
         self.br = StaticTransformBroadcaster(self)
 
-        self.declare_parameter('ar_marker', 'ar_marker_6')
+        self.declare_parameter('ar_marker', 'ar_marker_10')
         marker = self.get_parameter('ar_marker').get_parameter_value().string_value
 
         # Homogeneous transform G_ar->base_link

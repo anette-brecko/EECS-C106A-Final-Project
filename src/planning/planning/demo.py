@@ -1,5 +1,5 @@
 import rclpy
-from sensor_msgs.msg import JointState
+from geometry_msgs.msg import PointStamped
 from rclpy.utilities import remove_ros_args
 from .state_machine import UR7e_StateMachine
 import sys
@@ -7,14 +7,24 @@ import sys
 class UR7e_DemoLaunch(UR7e_StateMachine):
     def __init__(self):
         super().__init__('replay_test')
+        self.ball_pub = self.create_subscription(PointStamped, '/ball_pose_base', self.ball_callback, 1) 
+
+        self.ball_pose = None
         clean_args = remove_ros_args(args=sys.argv)
         self.traj_save_filename = clean_args[1]
         self.full_speed = 1.0
         self.trajectory_planner.speed = float(clean_args[2])
 
-    def ball_callback(self, ball_pose: JointState):
-        if self.joint_state is not None:
+    def ball_callback(self, ball_pose):
+        if self.ball_pose is not None:
             return
+
+        if self.joint_state is None:
+            self.get_logger().info("No joint state yet, cannot proceed")
+            return
+
+        self.ball_pose = ball_pose
+        
 
         self.get_logger().info("Getting ready!")
 

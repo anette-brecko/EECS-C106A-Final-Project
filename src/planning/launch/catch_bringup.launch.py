@@ -28,9 +28,6 @@ def generate_launch_description():
                 'camera.launch.py'
             )
         ),
-        # launch_arguments={ # TODO: IDk if you need these
-        #     'rgb_camera.color_profile': '1920x1080x30',
-        # }.items(),
     )
     # Perception node for logitech
     perception_node = Node(
@@ -68,8 +65,9 @@ def generate_launch_description():
 
     ar_marker_launch_arg = DeclareLaunchArgument(
         'ar_marker',
-        default_value='ar_marker_8' # TODO: Change to our desried ar_marker
+        default_value='ar_marker_10' # TODO: Change to our desried ar_marker
     )
+
     ar_marker = LaunchConfiguration('ar_marker')
 
     # Planning TF node

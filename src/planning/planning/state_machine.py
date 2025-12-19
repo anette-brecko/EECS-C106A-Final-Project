@@ -38,10 +38,10 @@ class UR7e_StateMachine(Node):
         self.joint_state = None
         self.moving = False
 
-        self.gripper_loose = 60
+        self.gripper_loose = 61
         self.gripper_tight = 80
         self.gripper_open = 0
-        self.loose_delay = 0.1
+        self.loose_delay = 0.05
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
