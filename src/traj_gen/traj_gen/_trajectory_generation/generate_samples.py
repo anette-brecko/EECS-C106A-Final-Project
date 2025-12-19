@@ -11,65 +11,7 @@ from .solve_ik import solve_ik_with_collision
 from .jacobian import compute_ee_spatial_jacobian
 from .gen_traj import solve_static_trajopt, choose_best_samples, _build_problem
 
-
-def solve_by_overhand_guesses(
-    robot: pk.Robot,
-    robot_coll: pk.collision.RobotCollision,
-    world_coll: Sequence[pk.collision.CollGeom],
-    target_link_name: str,
-    start_cfg: ArrayLike,
-    target_position: ArrayLike,
-    timesteps: int,
-    dt: float,
-    num_samples: int = 300,
-    g: float = 9.81,
-) -> tuple[list[tuple[onp.ndarray, float, float]], list[tuple[onp.ndarray, float, float]]]:
-    samples = generate_overhand_guesses(
-        start_cfg, 
-        timesteps, 
-        timesteps * dt,
-        num_samples
-    )
-    
-    return solve_static_trajopt(
-        robot, 
-        robot_coll, 
-        world_coll, 
-        target_link_name, 
-        start_cfg, 
-        target_position, 
-        timesteps, 
-        dt,
-        samples, 
-        g ), samples 
-
-def generate_overhand_guesses(start_cfg, timesteps, t_horizon, batch_size=50):
-    initial_guesses = []
-    
-    # Create a linear interpolation to a target that is LOWER than the start
-    # Assuming the robot base is at Z=0.
-    
-    for _ in range(batch_size):
-        # 1. Start at known high config
-        traj = onp.tile(start_cfg, (timesteps, 1))
-        
-        # 2. Add noise that favors moving "Down" (shoulder/elbow joints)
-        # You need to know which joint moves the arm down. 
-        # For UR5, usually Shoulder Lift (index 1) moving positive/negative
-        # depends on your mounting.
-        
-        # Adding to Joint 2 moves it down:
-        downward_drift = onp.linspace(0, 1.5, timesteps) # Move 1.5 rads over time
-        traj[:, 2] += downward_drift 
-        
-        # 3. Add random noise for exploration
-        traj += onp.random.normal(scale=0.1, size=traj.shape)
-        traj[0] = start_cfg # Pin start
-        
-        # ... append t_rel, t_tgt logic ...
-        initial_guesses.append((traj, t_horizon * 0.7, t_horizon * .9))
-        
-    return initial_guesses
+import os
 
 def quadratic_bezier_trajectory(p0, p1, p2):
     return lambda t: p0 * (1 - t) ** 2 + 2 * p1 * t * (1 - t) + p2 * t ** 2
@@ -91,7 +33,7 @@ def solve_by_sampling(
     num_samples: int = 300,
     num_samples_iterated: int = 10,
     g: float = 9.81,
-) -> tuple[list[tuple[onp.ndarray, float, float]], list[tuple[onp.ndarray, float, float]]]:
+) -> list[tuple[onp.ndarray, float, float]]:
     samples = generate_samples(
         robot, 
         robot_coll,
@@ -132,7 +74,7 @@ def solve_by_sampling(
         best_samples, 
         g, 
         problem
-    ), best_samples
+    )
 
 
 def generate_samples(
