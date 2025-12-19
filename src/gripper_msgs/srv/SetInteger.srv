@@ -1,0 +1,6 @@
+# Request
+uint8 data   # The value 0-255
+---
+# Response
+bool success 
+string message # Informational, e.g., "Gripper set to 128"

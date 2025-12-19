@@ -25,21 +25,25 @@ class HSVFilterNode(Node):
         # Brightness = 150, Contrast = 160, Saturation = 175, Gain = Max? 255?
 
         # Declare HSV threshold parameters
-        # self.declare_parameter("lower_h", 138.9)
-        # self.declare_parameter("lower_s", 90)
-        # self.declare_parameter("lower_v", 8)
-        # self.declare_parameter("upper_h", 167.4)
-        # self.declare_parameter("upper_s", 41)
-        # self.declare_parameter("upper_v", 36)
+
         self.declare_parameter("lower_h", 29)
         self.declare_parameter("lower_s", 18)
         self.declare_parameter("lower_v", 15)
         self.declare_parameter("upper_h", 82)
         self.declare_parameter("upper_s", 126)
         self.declare_parameter("upper_v", 106)
+
+        # self.declare_parameter("lower_h", 6)
+        # self.declare_parameter("lower_s", 143)
+        # self.declare_parameter("lower_v", 153)
+        # self.declare_parameter("upper_h", 23)
+        # self.declare_parameter("upper_s", 255)
+        # self.declare_parameter("upper_v", 255)
+
         # (29,18,29), (82,84,106)
-        self.surface_area = 0.001551791655
-        self.BALL_RADIUS = 0.022225
+        # self.surface_area = 0.001551791655
+        #self.BALL_RADIUS = 0.022225
+        self.BALL_RADIUS = 0.02
 
         # Subscriber
         self.subscription = self.create_subscription(Image, "/camera1/image_raw", self.image_callback, 10)
@@ -57,6 +61,8 @@ class HSVFilterNode(Node):
         self.get_logger().info("HSV Filter Node started!")
 
     def camera_info_callback(self, msg):
+        print("hi")
+        self.get_logger().info(f"Camera Info: {msg}")
         if not self.camera_intrinsics_received:
             self.get_logger().info("Recieved Camera Info")
             self.fx = msg.k[0]
@@ -67,6 +73,7 @@ class HSVFilterNode(Node):
             self.camera_intrinsics_received = True
    
     def image_callback(self, msg):
+        print("hellooo")
         if self.camera_intrinsics_received is None:
             self.get_logger().info('Camera is none.')
             return

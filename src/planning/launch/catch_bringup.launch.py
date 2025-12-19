@@ -11,6 +11,14 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
+    gripper_node = Node(
+        package='planning',
+        executable='enable_gripper',
+        name='enable_gripper',
+        output='screen'
+    )
+
+
     # Logitech launch
     logitech_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -108,7 +116,8 @@ def generate_launch_description():
     #     OnProcessExit(
     #         on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
     #     )
-    # )
+    # )        ar_marker_launch_arg,
+
 
         arguments=['0','0','0','0','0','0','1','base_link','world'],
         output='screen',
@@ -162,6 +171,7 @@ def generate_launch_description():
     # )
     
     return LaunchDescription([
+        gripper_node,
         ar_marker_launch_arg,
         logitech_launch,
         aruco_launch,
