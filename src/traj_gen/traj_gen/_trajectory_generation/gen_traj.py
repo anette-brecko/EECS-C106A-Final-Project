@@ -13,7 +13,7 @@ from .jacobian import compute_ee_spatial_jacobian
 
 import os
 
-os.environ["JAX_PLATFORM_NAME"] = "gpu"
+#os.environ["JAX_PLATFORM_NAME"] = "gpu"
 #jax.config.update('jax_num_cpu_devices', 24)
 # jax.config.update("jax_logging_level", "WARNING")
 # jax.config.update("jax_compilation_cache_dir", os.path.expanduser("~/.cache/jax"))
@@ -223,7 +223,6 @@ def _build_problem(
         q_tp1 = vals[var_t_plus_1]
         q_tp2 = vals[var_t_plus_2]
         
-        # Formula: (-3*q(t) + 4*q(t+1) - q(t+2)) / 2dt
         velocity = (-3 * q_t + 4 * q_tp1 - 1 * q_tp2) / (2 * dt)
         
         return (velocity * 20.0).flatten()
@@ -289,82 +288,70 @@ def _build_problem(
     @jaxls.Cost.factory(name="toss_target_cost")
     def toss_target_cost(
         vals: jaxls.VarValues,
-        traj_vars_tuple: tuple[jaxls.Var[jax.Array], ...],
+        traj_vars: jaxls.Var[jax.Array],
         time_release: TimeVar,
         time_target: TimeVar,
     ):
         t_rel = vals[time_release].squeeze()
         t_tgt = vals[time_target].squeeze()
 
-        delta_t = t_tgt - t_rel
+        # --- DEBUG PRINTING START ---
+        # Get the full trajectory
+        qs_full = vals[traj_vars]
         
-        # Get the integer bounds for interpolation
-        # Clamp to ensure we don't go out of bounds [0, timesteps-2]
-        # We use -2 because we need a "next" neighbor for velocity calculation
+        # Calculate indices
+        max_idx = qs_full.shape[0] - 2
         idx_float = t_rel / dt
-        max_idx = vals[traj_vars].shape[0] - 2
         idx_floor = jnp.clip(jnp.floor(idx_float).astype(int), 0, max_idx)
         idx_ceil = idx_floor + 1
-        
         alpha = idx_float - idx_floor
-        
-        # 3. Retrieve discrete joint configurations
-        qs_list = [vals[v] for v in traj_vars_tuple]
-        qs_full = jnp.stack(qs_list)
 
-        q_prev = qs_full[idx_floor - 1]
-        q_curr = qs_full[idx_floor]     # q at t_floor
-        q_next = qs_full[idx_ceil]      # q at t_ceil
-        q_next_next = qs_full[idx_ceil + 1]
+        # Retrieve neighbors
+        q_curr = qs_full[idx_floor.squeeze()]
+        q_next = qs_full[idx_ceil.squeeze()]
 
-        # --- 3. Interpolate Position (Still Linear) ---
+        # Interpolate
         q_release = (1.0 - alpha) * q_curr + alpha * q_next
-        q_release = q_release.reshape(-1)
 
-        # --- 4. Interpolate Central Difference Velocity ---
-        # Velocity at q_curr (t_floor) using central difference: (q_next - q_prev) / 2*dt
+        # PRINT SHAPES HERE
+        print("DEBUG: qs_full shape: {}", qs_full.shape)
+        print("DEBUG: q_release shape: {}", q_release.shape)
+
+        jax.debug.print("DEBUG: qs_full shape: {}", qs_full.shape)
+        jax.debug.print("DEBUG: q_release shape: {}", q_release.shape)
+        # --- DEBUG PRINTING END ---
+
+        # Continue with logic (this will likely crash in forward_kinematics)
+        # We explicitly DO NOT fix the shape here so we can see the crash cause
+        
+        # Calculate velocity
+        q_prev = qs_full[idx_floor.squeeze() - 1]
+        q_next_next = qs_full[idx_ceil.squeeze() + 1]
         q_dot_floor = (q_next - q_prev) / (2.0 * dt)
-
-        # Velocity at q_next (t_ceil) using central difference: (q_next_next - q_curr) / 2*dt
         q_dot_ceil = (q_next_next - q_curr) / (2.0 * dt) 
-
-        # Linear interpolation of the two velocity estimates
         q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
-        q_dot_release = q_dot_release.reshape(-1)
-
-        # Get starting position of launch
+        
         q = robot.forward_kinematics(q_release)
         x0 = q[..., target_link_index, 4:]
         
-        # Get launch velocity
         jacobian = compute_ee_spatial_jacobian(robot, q_release, jnp.array([target_link_index]))
-        twist = jacobian @ q_dot_release.squeeze()
+        twist = jacobian @ q_dot_release
         v0 = twist[:3][None]
         
-        # Projectile motion: x(t) = x0 + v0*t + 0.5*g*t^2
         gravity_vec = jnp.array([0.0, 0.0, -g]) 
-        
+        delta_t = t_tgt - t_rel
         pred_pos = x0 + v0 * delta_t + 0.5 * gravity_vec * (delta_t ** 2)
 
         pos_error = ((pred_pos - target_pos) * 300.0).flatten()
 
         R_ee = jaxlie.SE3(jnp.take(q, target_link_index, axis=-2)[..., :4])
         y_ee = R_ee.rotation() @ jnp.array([0.0, 1.0, 0.0])
-         
-        # Get launch velocity
-        jacobian = compute_ee_spatial_jacobian(robot, q_release, jnp.array([target_link_index]))
-        twist = jacobian @ q_dot_release.squeeze()
-        v0 = twist[:3][None]
-
+        
         v_norm = jnp.linalg.norm(v0) + 1e-6
         v_dir = v0 / v_norm
 
         align_error = ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
-        
-        # Target position (passed from outside, you might need to add it to args or closure)
-        # For now assuming target_position is available in closure as `target_position`
-        return jnp.concatenate([pos_error, align_error])
-        
+        return jnp.concatenate([pos_error, align_error])        
     @jaxls.Cost.factory(name="positive_time_cost")
     def positive_time_cost(
         vals: jaxls.VarValues,
@@ -381,29 +368,98 @@ def _build_problem(
 
         # 1. Release Time Lower Bound: t_rel >= 0
         # If t_rel is -0.1, error is 0.1
-        err_rel_low = jnp.maximum(0.0, -t_rel - 3 * dt)
+        err_rel_low = jax.nn.softplus(-t_rel - 3 * dt)
 
         # 2. Release Time Upper Bound: t_rel <= total_duration
         # If t_rel is 5.1 and max is 5.0, error is 0.1
-        err_rel_high = jnp.maximum(0.0, t_rel - total_duration - 3 * dt)
+        err_rel_high = jax.nn.softplus(t_rel - total_duration - 3 * dt)
 
         # 3. Flight Time Constraint: t_tgt >= t_rel + min_flight
         # If t_tgt is too early, this error grows
-        err_flight = jnp.maximum(0.0, (t_rel + min_flight_time) - t_tgt)
+        err_flight = jax.nn.softplus((t_rel + min_flight_time) - t_tgt)
         
         err = jnp.array([err_rel_low, err_rel_high, err_flight])
 
         err_from_intended = (t_rel - total_duration * 0.6) 
 
         # Weighting: 100.0 is a strong weight to enforce these strictly.
-        return  jnp.append(err * 100.0,  err_from_intended * 0.1)
-
-
+        return  jnp.append(err * 100.0,  err_from_intended * 0.001)
+       
+    @jaxls.Cost.factory(name="ensure_acceleration_at_release")
+    def ensure_acceleration_at_release(
+        vals: jaxls.VarValues,
+        var_traj: jaxls.Var[Array], # The full joint trajectory variable
+        var_time_release: jaxls.Var[Array], # The scalar release time
+        dt: float
+    ) -> Array:
+        # 1. Get the trajectory and release time
+        traj = vals[var_traj] # Shape (T, 6)
+        t_rel = vals[var_time_release].squeeze()
+        
+        # 2. Convert continuous time t_rel to an integer index
+        # (We use a soft approximation or just floor for simplicity in logic)
+        # For a robust cost, we usually pick the index closest to t_rel
+        idx = (t_rel / dt).astype(int)
+        
+        # Safety clip
+        idx = jnp.clip(idx, 1, traj.shape[0] - 2)
+        
+        # 3. Calculate Velocity and Acceleration at that index
+        q_prev = traj[idx - 1]
+        q_curr = traj[idx]
+        q_next = traj[idx + 1]
+        
+        vel_prev = (q_curr - q_prev)
+        vel_next = (q_next - q_curr)
+        
+        # 4. Acceleration proxy: difference in velocities
+        # We want vel_next >= vel_prev (speeding up)
+        # So we punish if vel_next < vel_prev
+        # Cost = ReLU(vel_prev_mag - vel_next_mag)
+        
+        speed_prev = jnp.linalg.norm(vel_prev)
+        speed_next = jnp.linalg.norm(vel_next)
+        
+        # If we are slowing down, this value becomes positive (a cost).
+        # If we are speeding up, it is zero.
+        deceleration_penalty = jax.nn.softplus(speed_prev - speed_next)
+        
+        return (deceleration_penalty * 30.0).flatten()
+    
+    @jaxls.Cost.factory(name="maximize_release_velocity")
+    def maximize_release_velocity(vals, var_traj, var_t_rel, dt):
+        traj = vals[var_traj]
+        t_rel = vals[var_t_rel].squeeze()
+        
+        # 2. Calculate Index from time (robustly)
+        idx_float = t_rel / dt
+        max_idx = traj.shape[0] - 2
+        
+        # Use simple rounding or floor to pick the step. 
+        # (We use clip to ensure we don't access out-of-bounds memory)
+        idx = jnp.clip(jnp.floor(idx_float).astype(int), 1, max_idx)
+        
+        # 3. Calculate Velocity at that index
+        # v = (q_current - q_prev) / dt
+        q_curr = traj[idx]
+        q_prev = traj[idx-1]
+        v_release = (q_curr - q_prev) / dt
+        
+        # 4. Compute speed (scalar)
+        speed = jnp.linalg.norm(v_release)
+        
+        # 5. Return as 1D Array
+        # We want to MAXIMIZE speed, so we MINIMIZE negative speed.
+        # .flatten() turns the scalar into a shape (1,) array.
+        return (-1.0 * speed * 0.001).flatten()
+    
     factors.extend(
         [
+            ensure_acceleration_at_release(traj_vars, time_release_var, dt),
+            maximize_release_velocity(traj_vars, time_release_var, dt),
             positive_time_cost(time_release_var, time_target_var),
             toss_target_cost(
-                tuple(traj_vars[i] for i in range(timesteps)), 
+                traj_vars,
                 time_release_var, 
                 time_target_var
             )
