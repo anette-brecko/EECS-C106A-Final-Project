@@ -56,6 +56,7 @@ class HSVFilterNode(Node):
         self.get_logger().info("HSV Filter Node started!")
 
     def camera_info_callback(self, msg):
+        self.get_logger().info(f"Camera Info: {msg}")
         if not self.camera_intrinsics_received:
             self.get_logger().info("Recieved Camera Info")
             self.fx = msg.k[0]
