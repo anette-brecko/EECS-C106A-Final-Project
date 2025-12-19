@@ -29,9 +29,12 @@ class UR7e_BallGraspAndLaunch(UR7e_StateMachine):
 
         # 1) Move to Pre-Grasp Position (gripper above the ball)
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.job_queue.append('open_grip')
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.5)
 =======
+=======
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
         self.job_queue.append('toggle_grip')
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y, 0.1)
 >>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
@@ -43,9 +46,12 @@ class UR7e_BallGraspAndLaunch(UR7e_StateMachine):
         grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.16)
         self.job_queue.append(grasp_state)
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.job_queue.append('close_grip')
 
 =======
+=======
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
         self.job_queue.append('toggle_grip')
         
 >>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)

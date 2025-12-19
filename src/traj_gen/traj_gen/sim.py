@@ -25,6 +25,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
 
     # For UR5 it's important to initialize the robot in a safe configuration;
     default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141]) 
+    start_cfg = default_cfg
     robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
     UR7eJointVar.default_factory = staticmethod(lambda: jnp.array(default_cfg))
     robot = jdc.replace(robot, joint_var_cls=UR7eJointVar)
@@ -46,12 +47,12 @@ def main(filename: str, timesteps: int, time_horizon: float):
         # Check if we need to solve again
         match status:
             case "regenerate":
-                solutions = solve_by_sampling(
+                real_solutions, solutions = solve_by_sampling(
                     robot,
                     robot_coll,
                     world.gen_world_coll(),
                     target_link_name,
-                    defualt_cfg,
+                    start_cfg,
                     target_pos,
                     timesteps,
                     dt,
@@ -77,6 +78,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                         timesteps,
                         dt
                     )
+                traj, t_release, t_target = real_solutions[idx]
                 print("Saving")
         status = world.visualize_all(
                 start_cfg, 

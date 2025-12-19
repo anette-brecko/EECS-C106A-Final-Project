@@ -23,6 +23,7 @@ class HSVFilterNode(Node):
 
         # Declare HSV threshold parameters
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         # self.declare_parameter("lower_h", 29)
         # self.declare_parameter("lower_s", 18)
@@ -41,6 +42,8 @@ class HSVFilterNode(Node):
         #self.BALL_RADIUS = 0.022225 # Green ball
         self.BALL_RADIUS = 0.02 * 28.0 / 28.0 # Fine tune ball radius
 =======
+=======
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
         # self.declare_parameter("lower_h", 138.9)
         # self.declare_parameter("lower_s", 90)
         # self.declare_parameter("lower_v", 8)
@@ -56,6 +59,9 @@ class HSVFilterNode(Node):
         # (29,18,29), (82,84,106)
         self.surface_area = 0.001551791655
         self.BALL_RADIUS = 0.022225
+<<<<<<< HEAD
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
+=======
 >>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 
         # Subscriber

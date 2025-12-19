@@ -35,9 +35,14 @@ class UR7e_BallGrasp(UR7e_StateMachine):
 
     # 1) Move to Pre-Grasp Position (gripper above the ball)
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.job_queue.append('open_grip')
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.5)
 
+=======
+        self.job_queue.append('toggle_grip')
+        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y,  0.1)
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 =======
         self.job_queue.append('toggle_grip')
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y,  0.1)
@@ -48,7 +53,11 @@ class UR7e_BallGrasp(UR7e_StateMachine):
         # theoretical max z offset is 6 cm but that's dangerous
         # need to get the gripper a cm or lower during grab
 <<<<<<< HEAD
+<<<<<<< HEAD
         grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.165)
+=======
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, - 0.032)
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 =======
         grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, - 0.032)
 >>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
@@ -60,7 +69,10 @@ class UR7e_BallGrasp(UR7e_StateMachine):
         self.launch_state = pre_grasp_state
         self.job_queue.append(self.launch_state)
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.job_queue.append('open_grip')
+=======
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 =======
 >>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
         self.execute_jobs()

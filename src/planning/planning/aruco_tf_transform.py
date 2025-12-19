@@ -23,7 +23,11 @@ class ArucoConstantTransformPublisher(Node):
         ])
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         G = np.linalg.inv(G)
+=======
+        # G = np.linalg.inv(G) THIS SHOULD BE HERE!!!
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
 =======
         # G = np.linalg.inv(G) THIS SHOULD BE HERE!!!
 >>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)

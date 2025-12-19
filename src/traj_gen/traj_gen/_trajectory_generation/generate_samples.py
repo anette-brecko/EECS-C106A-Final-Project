@@ -74,7 +74,7 @@ def solve_by_sampling(
         best_samples, 
         g, 
         problem
-    )
+    ), samples
 
 
 def generate_samples(
