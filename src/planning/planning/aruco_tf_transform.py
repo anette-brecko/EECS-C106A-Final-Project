@@ -22,7 +22,7 @@ class ArucoConstantTransformPublisher(Node):
             [ 0, 0, 0, 1.0]
         ])
 
-        # G = np.linalg.inv(G) THIS SHOULD BE HERE!!!
+        # G = np.linalg.inv(G)
 
         # Create TransformStamped
         self.transform = TransformStamped()

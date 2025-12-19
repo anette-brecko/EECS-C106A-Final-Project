@@ -34,14 +34,14 @@ class UR7e_BallGrasp(UR7e_StateMachine):
         # grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x + 0.10, ball_pose.point.y - 0.05, - 0.032)
 
     # 1) Move to Pre-Grasp Position (gripper above the ball)
-        self.job_queue.append('toggle_grip')
-        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, ball_pose.point.x, ball_pose.point.y,  0.1)
+        y = .5
+        pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, 0.0, y,  0.1)
         self.job_queue.append(pre_grasp_state)
 
         # 2) Move to Grasp Position (lower the gripper to the ball)
         # theoretical max z offset is 6 cm but that's dangerous
         # need to get the gripper a cm or lower during grab
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, - 0.032)
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, 0.0, y, - 0.05)
         self.job_queue.append(grasp_state)
 
         self.job_queue.append('toggle_grip')
@@ -49,6 +49,7 @@ class UR7e_BallGrasp(UR7e_StateMachine):
         # 4) Move back to Pre-Grasp Position
         self.launch_state = pre_grasp_state
         self.job_queue.append(self.launch_state)
+        self.job_queue.append('toggle_grip')
         self.execute_jobs()
 
 
