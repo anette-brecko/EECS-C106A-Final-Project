@@ -11,13 +11,6 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    gripper_node = Node(
-        package='planning',
-        executable='enable_gripper',
-        name='enable_gripper',
-        output='screen'
-    )
-
        # Static TF: base_link -> world
     # -------------------------------------------------
     # This TF is static because the "world" frame does not move.
@@ -62,7 +55,6 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
-        gripper_node,
         static_base_world,
         moveit_launch,
         shutdown_on_any_exit

@@ -9,7 +9,7 @@ from .world import World
 import numpy as np
 import jax.numpy as jnp
 import pyroki as pk
-from ._trajectory_generation.generate_samples import solve_by_overhand_guesses
+from ._trajectory_generation.generate_samples import solve_by_sampling
 from ._trajectory_generation.save_and_load import save_trajectory
 from ._trajectory_generation.solve_ik import solve_ik_with_collision
 import tyro
@@ -34,16 +34,15 @@ def main(filename: str, timesteps: int, time_horizon: float):
     world = World(robot, urdf, target_link_name)
 
     # Generate example trajectory
-    start_pos = np.array([0, -.5, .7])
+    start_pos = np.array([0, -.5, .5])
     start_wxyz = np.array([0, 0, 0, 1])
     target_link_indx = robot.links.names.index(target_link_name)
     start_cfg = solve_ik_with_collision(robot, robot_coll, world.gen_world_coll(), target_link_indx, default_cfg, start_pos, start_wxyz)
     
-    start_cfg = default_cfg
     target_pos = np.array([-0.3, 2.0, .2])
     dt = time_horizon / timesteps
 
-    world.visualize_tf(start_cfg, target_pos)
+    #world.visualize_tf(start_cfg, target_pos)
     
     status = "regenerate"
     traj, t_release, t_target = None, None, None
@@ -53,7 +52,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
         # Check if we need to solve again
         match status:
             case "regenerate":
-                real_solutions, solutions = solve_by_overhand_guesses(
+                real_solutions, solutions = solve_by_sampling(
                     robot,
                     robot_coll,
                     world.gen_world_coll(),
@@ -62,7 +61,10 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     target_pos,
                     timesteps,
                     dt,
-                    num_samples=20,
+                    robot_max_reach=0.85 * 0.95, # max 
+                    max_vel=13, 
+                    num_samples=300,
+                    num_samples_iterated=4,
                 )
                 traj, t_release, t_target = solutions[0]
                 idx = 0
@@ -70,6 +72,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                 idx = (idx + 1) % len(solutions)
                 traj, t_release, t_target = solutions[idx]
             case "execute":
+                traj, t_release, t_target = real_solutions[idx]
                 if filename:
                     save_trajectory(
                         filename,
@@ -82,8 +85,6 @@ def main(filename: str, timesteps: int, time_horizon: float):
                         dt
                     )
                 print("Saving")
-                traj, t_release, t_target = real_solutions[idx]
-             
         status = world.visualize_all(
                 start_cfg, 
                 target_pos, 

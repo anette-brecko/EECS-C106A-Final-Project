@@ -23,7 +23,7 @@ class World:
         self.table_width = 0.4 # Along y-axis
         self.table_length = 2.0 # Along x-axis
         self.table_height = 0.7366
-        self.table_safety = self.table_width / 3
+        self.table_safety = 0.10
         self.table_offset = np.array([0.0, 0.4, -0.22]) # As measured by center of the edge of the table
 
         # Floor parameters
@@ -60,7 +60,7 @@ class World:
                 ),
             ),
         )
-
+ 
         self.gen_world_coll()
                                    
         
@@ -183,55 +183,36 @@ class World:
         )
 
 
-        table_intervals = np.linspace(start=-self.table_height / 2.0, stop=self.table_height / 2.0 - self.table_safety, num=2)
-        translation = np.concatenate(
-            [
-                np.full((table_intervals.shape[0], 1), 0.0),
-                np.full((table_intervals.shape[0], 1), 0.0),
-                table_intervals.reshape(-1, 1),
-            ],
-            axis=1,
-        ) + self.table_offset + np.array([0.0, self.table_width / 2.0, -self.table_height / 2])
-        table_coll = pk.collision.Capsule.from_radius_height(
-            position=translation,
-            wxyz=np.array([.707,0, .707, 0]),
-            radius=np.full((translation.shape[0], 1), self.table_width / 2),
-            height=np.full((translation.shape[0], 1), self.table_length),
+        table_coll = pk.collision.Box.from_extent(
+            extent=np.array((self.table_length + self.table_safety, self.table_width + self.table_safety, self.table_height + self.table_safety)),
+            position=np.array([0, self.table_width / 2.0, -self.table_height / 2]) + self.table_offset
+        )        
+        # VISUALIZE COLLIDERS
+        table_coll_mesh = trimesh.creation.box(
+                extents=(self.table_length + self.table_safety, self.table_width + self.table_safety, self.table_height + self.table_safety),
+                transform=trimesh.transformations.translation_matrix(
+                    np.array([0, self.table_width / 2.0, -self.table_height / 2]) + self.table_offset
+                )
         )
 
-        # VISUALIZE COLLIDERS
-
-        mesh = trimesh.creation.capsule(height=self.pillar_height, radius=self.pillar_length / 2)
-                    
         self.server.scene.add_mesh_simple(
-            f"/collision/pillar",
-            vertices=mesh.vertices,
-            faces=mesh.faces,
-            position=np.array([0.0, 0.0, -self.pillar_height / 2 - self.pillar_length / 2]),
+            f"/collision/table",
+            vertices=table_coll_mesh.vertices,
+            faces=table_coll_mesh.faces,
             color=(1.0, 0.0, 0.0),
             opacity=0.5
         )
+        
+        pillar_mesh = trimesh.creation.capsule(height=self.pillar_height, radius=self.pillar_length / 2)
 
-
-        for i, trans in enumerate(translation):
-            mesh = trimesh.creation.capsule(height=self.table_length, radius=self.table_width / 2)
-                    
-            self.server.scene.add_mesh_simple(
-                f"/collision/table/{i}",
-                vertices=mesh.vertices,
-                faces=mesh.faces,
-                position=trans,
-                wxyz=np.array([.707,0, .707, 0]),
-                color=(1.0, 0.0, 0.0),
-                opacity=0.5
-            )
-
-        wall = trimesh.creation.box(
-                extents=(2.0, 2.0, 0.001),
-                transform=trimesh.transformations.translation_matrix(
-                    np.array([0, 0.0, self.min_height])
-                ),
-            )
+        self.server.scene.add_mesh_simple(
+            "/collision/pillar",
+            vertices=pillar_mesh.vertices,
+            faces=pillar_mesh.faces,
+            position=np.array([0.0, 0.0, -self.pillar_height / 2 - self.pillar_length / 2 ]),
+            color=(1.0, 0.0, 0.0),
+            opacity=0.5
+        )
 
         wall = trimesh.creation.box(
                 extents=(2.0, 0.1, 2.0),
@@ -241,7 +222,7 @@ class World:
             )
 
         self.server.scene.add_mesh_simple(
-            "/collision/floor",
+            "/collision/wall",
             vertices=wall.vertices,
             faces=wall.faces,
             color=(1.0, 0.0, 0.0),

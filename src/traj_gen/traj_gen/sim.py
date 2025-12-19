@@ -25,6 +25,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
 
     # For UR5 it's important to initialize the robot in a safe configuration;
     default_cfg = np.array([4.712, -1.850, -1.425, -1.405, 1.593, -3.141]) 
+    start_cfg = default_cfg
     robot = pk.Robot.from_urdf(urdf, default_joint_cfg=default_cfg)
     UR7eJointVar.default_factory = staticmethod(lambda: jnp.array(default_cfg))
     robot = jdc.replace(robot, joint_var_cls=UR7eJointVar)
@@ -33,13 +34,6 @@ def main(filename: str, timesteps: int, time_horizon: float):
     # Initialize world
     world = World(robot, urdf, target_link_name)
 
-    # Generate example trajectory
-    #start_pos = np.array([0, -.5, .7])
-    #start_wxyz = np.array([0, 0, 0, 1])
-    #target_link_indx = robot.links.names.index(target_link_name)
-    #start_cfg = solve_ik_with_collision(robot, robot_coll, world.gen_world_coll(), target_link_indx, default_cfg, start_pos, start_wxyz)
-    
-    start_cfg = default_cfg
     target_pos = np.array([-0.3, 2.0, .2])
     dt = time_horizon / timesteps
 
@@ -64,8 +58,8 @@ def main(filename: str, timesteps: int, time_horizon: float):
                     dt,
                     robot_max_reach=0.85 * 0.95, # max 
                     max_vel=13, 
-                    num_samples=200,
-                    num_samples_iterated=4,
+                    num_samples=100,
+                    num_samples_iterated=10,
                 )
                 traj, t_release, t_target = solutions[0]
                 idx = 0
@@ -73,6 +67,7 @@ def main(filename: str, timesteps: int, time_horizon: float):
                 idx = (idx + 1) % len(solutions)
                 traj, t_release, t_target = solutions[idx]
             case "execute":
+                traj, t_release, t_target = real_solutions[idx]
                 if filename:
                     save_trajectory(
                         filename,
@@ -85,8 +80,6 @@ def main(filename: str, timesteps: int, time_horizon: float):
                         dt
                     )
                 print("Saving")
-                traj, t_release, t_target = real_solutions[idx]
-             
         status = world.visualize_all(
                 start_cfg, 
                 target_pos, 

@@ -186,7 +186,7 @@ def _build_problem(
             robot_coll_batched,
             traj_vars,
             0.003,
-            100.0 / timesteps,
+            1000.0 / timesteps,
         )
     )
 
@@ -208,7 +208,7 @@ def _build_problem(
         q_tm4 = vals[var_t_minus_4]
          
         velocity = (25 * q_t - 48 * q_tm1 + 36 * q_tm2 - 16 * q_tm3 + 3 * q_tm4) / (12 * dt)
-        return (velocity * 20.0).flatten()
+        return (velocity * 30.0).flatten()
     
     @jaxls.Cost.factory(name="velocity_limit_cost_forward")
     def velocity_limit_cost_forward(
@@ -288,45 +288,38 @@ def _build_problem(
     @jaxls.Cost.factory(name="toss_target_cost")
     def toss_target_cost(
         vals: jaxls.VarValues,
-        traj_vars: jaxls.Var[jax.Array],
+        traj_vars_tuple: tuple[jaxls.Var[jax.Array], ...],
         time_release: TimeVar,
         time_target: TimeVar,
     ):
         t_rel = vals[time_release].squeeze()
         t_tgt = vals[time_target].squeeze()
 
-        # --- DEBUG PRINTING START ---
-        # Get the full trajectory
-        qs_full = vals[traj_vars]
+        qs_full = jnp.stack([vals[v] for v in traj_vars_tuple])
+
+        delta_t = t_tgt - t_rel
         
-        # Calculate indices
         max_idx = qs_full.shape[0] - 2
         idx_float = t_rel / dt
         idx_floor = jnp.clip(jnp.floor(idx_float).astype(int), 0, max_idx)
         idx_ceil = idx_floor + 1
         alpha = idx_float - idx_floor
 
-        # Retrieve neighbors
-        q_curr = qs_full[idx_floor.squeeze()]
-        q_next = qs_full[idx_ceil.squeeze()]
+        # 3. Retrieve discrete joint configurations
+        qs_list = [vals[v] for v in traj_vars_tuple]
+        qs_full = jnp.stack(qs_list)
 
-        # Interpolate
+        q_prev = qs_full[idx_floor - 1]
+        q_curr = qs_full[idx_floor]     # q at t_floor
+        q_next = qs_full[idx_ceil]      # q at t_ceil
+        q_next_next = qs_full[idx_ceil + 1]
+
+        # --- 3. Interpolate Position (Still Linear) ---
         q_release = (1.0 - alpha) * q_curr + alpha * q_next
+        q_release = q_release.reshape(-1)
 
-        # PRINT SHAPES HERE
-        print("DEBUG: qs_full shape: {}", qs_full.shape)
-        print("DEBUG: q_release shape: {}", q_release.shape)
-
-        jax.debug.print("DEBUG: qs_full shape: {}", qs_full.shape)
-        jax.debug.print("DEBUG: q_release shape: {}", q_release.shape)
-        # --- DEBUG PRINTING END ---
-
-        # Continue with logic (this will likely crash in forward_kinematics)
-        # We explicitly DO NOT fix the shape here so we can see the crash cause
-        
-        # Calculate velocity
-        q_prev = qs_full[idx_floor.squeeze() - 1]
-        q_next_next = qs_full[idx_ceil.squeeze() + 1]
+        # --- 4. Interpolate Central Difference Velocity ---
+        # Velocity at q_curr (t_floor) using central difference: (q_next - q_prev) / 2*dt
         q_dot_floor = (q_next - q_prev) / (2.0 * dt)
         q_dot_ceil = (q_next_next - q_curr) / (2.0 * dt) 
         q_dot_release = (1.0 - alpha) * q_dot_floor + alpha * q_dot_ceil
@@ -351,7 +344,8 @@ def _build_problem(
         v_dir = v0 / v_norm
 
         align_error = ((jnp.cross(-y_ee, v_dir)) * 40.0).flatten()
-        return jnp.concatenate([pos_error, align_error])        
+        return jnp.concatenate([pos_error, align_error]) 
+           
     @jaxls.Cost.factory(name="positive_time_cost")
     def positive_time_cost(
         vals: jaxls.VarValues,
@@ -368,15 +362,15 @@ def _build_problem(
 
         # 1. Release Time Lower Bound: t_rel >= 0
         # If t_rel is -0.1, error is 0.1
-        err_rel_low = jax.nn.softplus(-t_rel - 3 * dt)
+        err_rel_low = jnp.maximum(0.0, -t_rel - 3 * dt)
 
         # 2. Release Time Upper Bound: t_rel <= total_duration
         # If t_rel is 5.1 and max is 5.0, error is 0.1
-        err_rel_high = jax.nn.softplus(t_rel - total_duration - 3 * dt)
+        err_rel_high = jnp.maximum(0.0, t_rel - total_duration - 3 * dt)
 
         # 3. Flight Time Constraint: t_tgt >= t_rel + min_flight
         # If t_tgt is too early, this error grows
-        err_flight = jax.nn.softplus((t_rel + min_flight_time) - t_tgt)
+        err_flight = jnp.maximum(0.0, (t_rel + min_flight_time) - t_tgt)
         
         err = jnp.array([err_rel_low, err_rel_high, err_flight])
 
@@ -459,7 +453,7 @@ def _build_problem(
             maximize_release_velocity(traj_vars, time_release_var, dt),
             positive_time_cost(time_release_var, time_target_var),
             toss_target_cost(
-                traj_vars,
+                tuple(traj_vars[i] for i in range(timesteps)), 
                 time_release_var, 
                 time_target_var
             )

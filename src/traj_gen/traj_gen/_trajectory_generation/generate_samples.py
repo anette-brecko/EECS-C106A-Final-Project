@@ -59,11 +59,11 @@ def generate_overhand_guesses(start_cfg, timesteps, t_horizon, batch_size=50):
         # depends on your mounting.
         
         # Adding to Joint 2 moves it down:
-        downward_drift = onp.linspace(0, 1.5, timesteps) # Move 1.5 rads over time
+        downward_drift = -onp.linspace(0, 1.5, timesteps) # Move 1.5 rads over time
         traj[:, 2] += downward_drift 
         
         # 3. Add random noise for exploration
-        traj += onp.random.normal(scale=0.1, size=traj.shape)
+        traj += onp.random.normal(scale=0.0001, size=traj.shape)
         traj[0] = start_cfg # Pin start
         
         # ... append t_rel, t_tgt logic ...
@@ -157,9 +157,9 @@ def generate_samples(
         """Generates a position samples from a uniform distribution in a user defined box"""
         # Should have positive x-axis and z-axis bias
         while True:
-            x = onp.random.uniform(-.3, .8)
-            y = onp.random.uniform(-.8, .8)
-            z = onp.random.uniform(-.3, .8)
+            x = onp.random.uniform(-.5, .5)
+            y = onp.random.uniform(-.2, .8)
+            z = onp.random.uniform(-.3, .9)
             x_rel = onp.array([x, y, z])
             if onp.linalg.norm(x_rel) > robot_max_reach: continue
             return x_rel
@@ -171,7 +171,7 @@ def generate_samples(
     def gen_orientation_sample(v_rel, x_rel):
         """Generates a random orientation for the end effector"""
         # neg y-axis should be pointing in v_rel direction
-        y_axis = -v_rel / onp.linalg.norm(v_rel) * onp.random.choice([1, -1])
+        y_axis = -v_rel / onp.linalg.norm(v_rel) #* onp.random.choice([1, -1])
 
         # z-axis should be somewhat away from origin
         away = x_rel / onp.linalg.norm(x_rel)
@@ -255,10 +255,10 @@ def generate_samples(
         traj_points = [traj(t) for t in dt * onp.arange(0, timesteps)]
         traj_points = onp.array(jnp.stack(traj_points))
         samples.append((traj_points, t_rel, t_rel + dt_air))
-        
+         
         if (len(samples) % 10) == 0 and samples: print(f'Generated {len(samples)} samples')
-    
-    return samples
+        
+        return samples
 
 #@jax.jit
 def check_ik_convergence(

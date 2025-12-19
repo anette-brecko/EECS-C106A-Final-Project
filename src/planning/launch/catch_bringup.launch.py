@@ -11,14 +11,6 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    gripper_node = Node(
-        package='planning',
-        executable='enable_gripper',
-        name='enable_gripper',
-        output='screen'
-    )
-
-
     # Logitech launch
     logitech_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -110,7 +102,16 @@ def generate_launch_description():
     static_base_world = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
+<<<<<<< HEAD
         name='static_base_world', 
+=======
+        name='static_base_world',    # shutdown_on_any_exit = RegisterEventHandler(
+    #     OnProcessExit(
+    #         on_exit=[EmitEvent(event=Shutdown(reason='SOMETHING BONKED'))]
+    #     )
+    # )
+
+>>>>>>> parent of 06d6a5c (Update pyroki... Wack results.)
         arguments=['0','0','0','0','0','0','1','base_link','world'],
         output='screen',
     )
@@ -178,7 +179,6 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
-        gripper_node,
         ar_marker_launch_arg,
         logitech_launch,
         aruco_launch,
