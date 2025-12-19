@@ -38,7 +38,7 @@ class HSVFilterNode(Node):
         self.declare_parameter("upper_v", 255)
 
         #self.BALL_RADIUS = 0.022225 # Green ball
-        self.BALL_RADIUS = 0.02 * 29.0 / 28.0 # Fine tune ball radius
+        self.BALL_RADIUS = 0.02 * 28.0 / 28.0 # Fine tune ball radius
 
         # Subscriber
         self.subscription = self.create_subscription(Image, "/camera1/image_raw", self.image_callback, 10)

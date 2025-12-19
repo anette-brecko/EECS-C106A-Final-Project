@@ -42,7 +42,7 @@ class UR7e_BallGrasp(UR7e_StateMachine):
         # 2) Move to Grasp Position (lower the gripper to the ball)
         # theoretical max z offset is 6 cm but that's dangerous
         # need to get the gripper a cm or lower during grab
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.16)
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, ball_pose.point.x, ball_pose.point.y, ball_pose.point.z + 0.165)
         self.job_queue.append(grasp_state)
 
         self.job_queue.append('close_grip')
