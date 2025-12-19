@@ -26,19 +26,19 @@ class HSVFilterNode(Node):
 
         # Declare HSV threshold parameters
 
-        # self.declare_parameter("lower_h", 29)
-        # self.declare_parameter("lower_s", 18)
-        # self.declare_parameter("lower_v", 15)
-        # self.declare_parameter("upper_h", 82)
-        # self.declare_parameter("upper_s", 126)
-        # self.declare_parameter("upper_v", 106)
+        self.declare_parameter("lower_h", 29)
+        self.declare_parameter("lower_s", 18)
+        self.declare_parameter("lower_v", 15)
+        self.declare_parameter("upper_h", 82)
+        self.declare_parameter("upper_s", 126)
+        self.declare_parameter("upper_v", 106)
 
-        self.declare_parameter("lower_h", 6)
-        self.declare_parameter("lower_s", 143)
-        self.declare_parameter("lower_v", 153)
-        self.declare_parameter("upper_h", 23)
-        self.declare_parameter("upper_s", 255)
-        self.declare_parameter("upper_v", 255)
+        # self.declare_parameter("lower_h", 6)
+        # self.declare_parameter("lower_s", 143)
+        # self.declare_parameter("lower_v", 153)
+        # self.declare_parameter("upper_h", 23)
+        # self.declare_parameter("upper_s", 255)
+        # self.declare_parameter("upper_v", 255)
 
         # (29,18,29), (82,84,106)
         # self.surface_area = 0.001551791655
@@ -61,6 +61,7 @@ class HSVFilterNode(Node):
         self.get_logger().info("HSV Filter Node started!")
 
     def camera_info_callback(self, msg):
+        print("hi")
         self.get_logger().info(f"Camera Info: {msg}")
         if not self.camera_intrinsics_received:
             self.get_logger().info("Recieved Camera Info")
@@ -72,6 +73,7 @@ class HSVFilterNode(Node):
             self.camera_intrinsics_received = True
    
     def image_callback(self, msg):
+        print("hellooo")
         if self.camera_intrinsics_received is None:
             self.get_logger().info('Camera is none.')
             return

@@ -8,7 +8,7 @@ from pathlib import Path
 # --- CONFIGURATION ---
 CHECKERBOARD = (15, 10)
 SQUARE_SIZE = 12.7  # mm
-IMAGE_FOLDER = Path('/Users/jhaertel/Pictures/board/')
+IMAGE_FOLDER = Path('/home/cc/ee106a/fa25/class/ee106a-aal/ros_workspaces/EECS-C106A-Final-Project/src/ball_sense/ball_sense/cheese')
 
 # Termination criteria for sub-pixel accuracy
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -30,7 +30,7 @@ if not images:
 print(f"Found {len(images)} images. Processing...")
 
 for fname in images:
-    img = cv2.imread(fname)
+    img = cv2.imread(str(fname))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Find the chess board corners
@@ -58,6 +58,17 @@ if len(imgpoints) > 0:
     h, w = gray.shape[:2]
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, (w, h), None, None)
 
+    new_K, roi = cv2.getOptimalNewCameraMatrix(
+        mtx, dist, (w, h), alpha=0
+    )
+
+    # Rectification matrix (identity for monocular camera)
+    R = np.eye(3, dtype=np.float64)
+
+    # Projection matrix P = [K' | 0]
+    P = np.zeros((3, 4), dtype=np.float64)
+    P[:3, :3] = new_K
+
     # --- REPROJECTION ERROR ---
     total_error = 0
     for i in range(len(objpoints)):
@@ -79,6 +90,8 @@ if len(imgpoints) > 0:
         "resolution": [w, h],
         "camera_matrix": mtx.tolist(),
         "dist_coeff": dist.tolist(),
+        "rectification_matrix": R.tolist(),
+        "projection_matrix": P.tolist(),
         "reprojection_error": mean_error
     }
     with open("c922_offline_params.json", "w") as f:
