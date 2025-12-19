@@ -186,7 +186,7 @@ def _build_problem(
             robot_coll_batched,
             traj_vars,
             0.003,
-            100.0 / timesteps,
+            1000.0 / timesteps,
         )
     )
 
@@ -208,7 +208,7 @@ def _build_problem(
         q_tm4 = vals[var_t_minus_4]
          
         velocity = (25 * q_t - 48 * q_tm1 + 36 * q_tm2 - 16 * q_tm3 + 3 * q_tm4) / (12 * dt)
-        return (velocity * 20.0).flatten()
+        return (velocity * 30.0).flatten()
     
     @jaxls.Cost.factory(name="velocity_limit_cost_forward")
     def velocity_limit_cost_forward(
