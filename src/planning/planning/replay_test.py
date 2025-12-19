@@ -23,7 +23,7 @@ class UR7e_DemoLaunch(UR7e_StateMachine):
         self.get_logger().info("Loading trajectory")     
         throwing_trajectory, t_release, start_cfg = self.trajectory_planner.play_loaded_trajectory(self.traj_save_filename)
 
-        y = .074
+        y = .74
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, 0.0, y,  0.1)
         self.job_queue.append(pre_grasp_state)
 
@@ -33,7 +33,7 @@ class UR7e_DemoLaunch(UR7e_StateMachine):
         grasp_state = self.ik_planner.compute_ik(pre_grasp_state, 0.0, y, - 0.032)
         self.job_queue.append(grasp_state)
 
-        self.job_queue.append('toggle_grip')
+        self.job_queue.append('close_grip')
         self.job_queue.append(start_cfg)
         
         # Launch Ball
