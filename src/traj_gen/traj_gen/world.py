@@ -60,6 +60,8 @@ class World:
                 ),
             ),
         )
+
+        self.gen_world_coll()
                                    
         
     def visualize_tf(self, start_cfg, target_pos):
@@ -181,7 +183,7 @@ class World:
         )
 
 
-        table_intervals = np.linspace(start=-self.table_height / 2.0, stop=self.table_height / 2.0 - self.table_safety, num=3)
+        table_intervals = np.linspace(start=-self.table_height / 2.0, stop=self.table_height / 2.0 - self.table_safety, num=2)
         translation = np.concatenate(
             [
                 np.full((table_intervals.shape[0], 1), 0.0),

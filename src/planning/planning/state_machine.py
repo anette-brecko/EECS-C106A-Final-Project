@@ -7,13 +7,12 @@ from control_msgs.action import FollowJointTrajectory
 from sensor_msgs.msg import JointState
 import numpy as np
 from ur_msgs.srv import SetSpeedSliderFraction
-from control_msgs.action import GripperCommand # You need to import this Action type
 
 from planning.ik import IKPlanner
 from traj_gen.traj_planner import TrajectoryPlanner
 
 class UR7e_StateMachine(Node):
-    def __init__(self, name='state_machine'):
+    def __init__(self, name='traj_planner'):
         super().__init__(name)
 
         self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 1)
@@ -31,19 +30,12 @@ class UR7e_StateMachine(Node):
             '/scaled_joint_trajectory_controller/follow_joint_trajectory'
         )
 
-        self.gripper_ac = ActionClient(
-            self, 
-            GripperCommand,
-            '/gripper_action_controller/gripper_cmd'  # Standard ROS 2 Control name
-        )
-
-        self.joint_state = None
-        self.moving = False
+        self.gripper_cli = self.create_client(Trigger, '/toggle_gripper')
 
         self.ik_planner = IKPlanner()
         self.trajectory_planner = TrajectoryPlanner()
-        self.full_speed = 0.9
-        self.slow_speed = 0.2
+
+        self.joint_state = None
 
         self.job_queue = [] # Entries should be of type either JointState, RobotTrajectory, or String('toggle_grip')
 
@@ -64,72 +56,36 @@ class UR7e_StateMachine(Node):
             if traj is None:
                 self.get_logger().error("Failed to plan to position")
                 return
+
             self.get_logger().info("Planned to position")
-            self._set_speed_slider(self.slow_speed) 
+            self._set_speed_slider(0.2)
             self._execute_joint_trajectory(traj.joint_trajectory)
         elif isinstance(next_job, tuple):
             self.get_logger().info("Planned to launch")
-            self._set_speed_slider(self.full_speed) 
+            self._set_speed_slider(1.0)
             self._execute_joint_trajectory(next_job[0], release_time=next_job[1])
-        elif next_job == 'open_grip':
-            self.get_logger().info("Opening gripper")
-            self._set_gripper_position(0.05)
-        elif next_job == 'close_grip':
-            self.get_logger().info("Closing gripper")
-            self._set_gripper_position(0.0)
+        elif next_job == 'toggle_grip':
+            self.get_logger().info("Toggling gripper")
+            self._toggle_gripper()
         else:
             self.get_logger().error("Unknown job type.")
             self.execute_jobs()  # Proceed to next job
 
-    def _set_gripper_position(self, position: float, max_effort: float = 50.0):
-        """
-        Commands the gripper to a specific position (0.0=closed, 0.05=open).
-        """
-        if not self.gripper_ac.wait_for_server(timeout_sec=1.0):
-            self.get_logger().error('Gripper Action Server not available')
-            # Proceed to next job so the main loop doesn't stall
-            self.execute_jobs()
+    def _toggle_gripper(self):
+        if not self.gripper_cli.wait_for_service(timeout_sec=5.0):
+            self.get_logger().error('Gripper service not available')
+            rclpy.shutdown()
             return
 
-        # 1. Create the Goal message
-        goal_msg = GripperCommand.Goal()
-        goal_msg.command.position = position
-        goal_msg.command.max_effort = max_effort
+        req = Trigger.Request()
+        future = self.gripper_cli.call_async(req)
+        # wait for 2 seconds
+        rclpy.spin_until_future_complete(self, future, timeout_sec=2.0)
 
-        # 2. Send the Goal asynchronously
-        send_future = self.gripper_ac.send_goal_async(goal_msg)
-        send_future.add_done_callback(self._on_gripper_goal_accepted)
+        self.get_logger().info('Gripper toggled.')
+        self.execute_jobs()  # Proceed to next job
 
-
-    def _on_gripper_goal_accepted(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.get_logger().error('Gripper Goal rejected.')
-            self.execute_jobs() # Proceed to next job
-            return
-
-        # 3. Wait for the result
-        result_future = goal_handle.get_result_async()
-        result_future.add_done_callback(self._on_gripper_goal_done)
-
-    def _on_gripper_goal_done(self, future):
-        try:
-            result = future.result().result
             
-            # Check if the command was successful (optional, but good practice)
-            if result.reached_goal:
-                self.get_logger().info('Gripper position command complete.')
-            else:
-                self.get_logger().warn('Gripper did not reach the goal position.')
-            
-        except Exception as e:
-            self.get_logger().error(f'Gripper command failed: {e}')
-            
-        # Proceed to the next job in the queue
-        if not self.moving: # Not mid trajectory
-            self.execute_jobs()
-
-                
     def _execute_joint_trajectory(self, joint_traj, release_time=None):
         self.get_logger().info('Waiting for controller action server...')
         self.exec_ac.wait_for_server()
@@ -139,7 +95,7 @@ class UR7e_StateMachine(Node):
 
         self.get_logger().info('Sending trajectory to controller...')
 
-        self.release_time = release_time
+        self._release_time = release_time
 
         send_future = self.exec_ac.send_goal_async(goal)
         send_future.add_done_callback(lambda future: self._on_goal_sent(future, release_time))
@@ -152,7 +108,6 @@ class UR7e_StateMachine(Node):
             return
 
         self.get_logger().info('Executing...')
-        self.moving = True
 
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self._on_exec_done)
@@ -165,11 +120,10 @@ class UR7e_StateMachine(Node):
 
     def _timer_release_callback(self):
         self.get_logger().info("TIMER FIRED: Releasing Gripper!")
-        self._set_gripper_position(0.05, 100)
+        self._toggle_gripper()
         
         # Destroy timer so it doesn't fire again
         self._release_timer.destroy()
-
 
     def _on_exec_done(self, future):
         try:
@@ -178,14 +132,12 @@ class UR7e_StateMachine(Node):
             self.execute_jobs()  # Proceed to next job
         except Exception as e:
             self.get_logger().error(f'Execution failed: {e}')
-        self.moving = False
 
     def _set_speed_slider(self, fraction: float):
         """
         Sets the speed slider fraction (0.0 to 1.0).
         """
         # Create request
-        self.get_logger().info(f"Setting speed slider to {fraction}")
         req = SetSpeedSliderFraction.Request()
         req.speed_slider_fraction = fraction
 
@@ -198,11 +150,7 @@ class UR7e_StateMachine(Node):
     def _on_speed_set_done(self, future):
         try:
             response = future.result()
-            if response.succes:
-                self.get_logger().info("Speed slider updated successfully.")
-                self.execute_jobs()  # Proceed to next job
-            else:
-                self.get_logger().error("Speed slider update failed.")
+            self.get_logger().info("Speed slider updated successfully.")
         except Exception as e:
             self.get_logger().error(f"Service call failed HERE: {e}")
 

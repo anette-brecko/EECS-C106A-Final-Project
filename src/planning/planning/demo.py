@@ -6,7 +6,7 @@ import sys
 
 class UR7e_DemoLaunch(UR7e_StateMachine):
     def __init__(self):
-        super().__init__('replay_test')
+        super().__init__('demo')
         clean_args = remove_ros_args(args=sys.argv)
         self.traj_save_filename = clean_args[1]
         self.full_speed = 1.0
@@ -22,15 +22,17 @@ class UR7e_DemoLaunch(UR7e_StateMachine):
 
         self.get_logger().info("Loading trajectory")     
         throwing_trajectory, t_release, start_cfg = self.trajectory_planner.play_loaded_trajectory(self.traj_save_filename)
-
-        y = .074
+        t_release += 0.4
+        y = .61
         pre_grasp_state = self.ik_planner.compute_ik(self.joint_state, 0.0, y,  0.1)
         self.job_queue.append(pre_grasp_state)
+
+        print(pre_grasp_state)
 
         # 2) Move to Grasp Position (lower the gripper to the ball)
         # theoretical max z offset is 6 cm but that's dangerous
         # need to get the gripper a cm or lower during grab
-        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, 0.0, y, - 0.032)
+        grasp_state = self.ik_planner.compute_ik(pre_grasp_state, 0.0, y, - .045)
         self.job_queue.append(grasp_state)
 
         self.job_queue.append('toggle_grip')
@@ -53,3 +55,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+

@@ -31,12 +31,13 @@ class HSVFilterNode(Node):
         # self.declare_parameter("upper_h", 167.4)
         # self.declare_parameter("upper_s", 41)
         # self.declare_parameter("upper_v", 36)
-        self.declare_parameter("lower_h", 30)
-        self.declare_parameter("lower_s", 16)
-        self.declare_parameter("lower_v", 37)
-        self.declare_parameter("upper_h", 80)
-        self.declare_parameter("upper_s", 147)
-        self.declare_parameter("upper_v", 96)
+        self.declare_parameter("lower_h", 29)
+        self.declare_parameter("lower_s", 18)
+        self.declare_parameter("lower_v", 15)
+        self.declare_parameter("upper_h", 82)
+        self.declare_parameter("upper_s", 126)
+        self.declare_parameter("upper_v", 106)
+        # (29,18,29), (82,84,106)
         self.surface_area = 0.001551791655
         self.BALL_RADIUS = 0.022225
 
@@ -96,7 +97,7 @@ class HSVFilterNode(Node):
         mask = cv2.inRange(hsv, lower, upper)
 
         # Clean up mask
-        kernel = np.ones((3,3),np.uint8)
+        kernel = np.ones((7,7),np.uint8)
         mask = cv2.erode(mask, kernel, iterations=2)
         mask = cv2.dilate(mask, kernel, iterations=2)
 

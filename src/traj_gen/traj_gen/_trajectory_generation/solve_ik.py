@@ -79,9 +79,9 @@ def solve_ik_with_collision(
     )
 
     # Small cost to encourage the start + end configs to be close to each other.
-    @jaxls.Cost.create_factory(name="JointSimilarityCost")
+    @jaxls.Cost.factory(name="JointSimilarityCost")
     def joint_similarity_cost(vals, var):
-        return ((start_cfg - vals[var]) * 0.10).flatten()
+        return ((start_cfg - vals[var]) * 0.2).flatten()
 
     factors.append(joint_similarity_cost(joint_var))
 
