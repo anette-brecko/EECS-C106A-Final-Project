@@ -183,28 +183,11 @@ class World:
         )
 
 
-<<<<<<< HEAD
         table_coll = pk.collision.Box.from_extent(
             extent=np.array((self.table_length + self.table_safety, self.table_width + self.table_safety, self.table_height + self.table_safety)),
             position=np.array([0, self.table_width / 2.0, -self.table_height / 2]) + self.table_offset
         )        
-=======
-        table_intervals = np.linspace(start=-self.table_height / 2.0, stop=self.table_height / 2.0 - self.table_safety, num=3)
-        translation = np.concatenate(
-            [
-                np.full((table_intervals.shape[0], 1), 0.0),
-                np.full((table_intervals.shape[0], 1), 0.0),
-                table_intervals.reshape(-1, 1),
-            ],
-            axis=1,
-        ) + self.table_offset + np.array([0.0, self.table_width / 2.0, -self.table_height / 2])
-        table_coll = pk.collision.Capsule.from_radius_height(
-            position=translation,
-            wxyz=np.array([.707,0, .707, 0]),
-            radius=np.full((translation.shape[0], 1), self.table_width / 2),
-            height=np.full((translation.shape[0], 1), self.table_length),
-        )
->>>>>>> parent of 8e04727 (Added calibration stuff and some more trajectory costs.)
+
 
         # VISUALIZE COLLIDERS
         table_coll_mesh = trimesh.creation.box(
