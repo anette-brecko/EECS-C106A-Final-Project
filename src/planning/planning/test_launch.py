@@ -36,10 +36,9 @@ class UR7e_TestLaunch(UR7e_StateMachine):
         
         # 5) Launch Ball
         self.get_logger().info("Computing trajectory")        
-        throwing_trajectory, t_release = self.trajectory_planner.plan_to_target(
+        throwing_trajectory, t_release = self.ik_planner.plan_to_target(
             self.launch_state, 
             self.target_pose, 
-            50, 
             1.5, 
             filename=self.traj_save_filename
         )

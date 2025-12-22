@@ -9,7 +9,6 @@ import numpy as np
 from ur_msgs.srv import SetSpeedSliderFraction
 
 from planning.ik import IKPlanner
-from traj_gen.traj_planner import TrajectoryPlanner
 
 class UR7e_StateMachine(Node):
     def __init__(self, name='traj_planner'):
@@ -33,7 +32,6 @@ class UR7e_StateMachine(Node):
         self.gripper_cli = self.create_client(SetInteger, '/set_gripper')
 
         self.ik_planner = IKPlanner()
-        self.trajectory_planner = TrajectoryPlanner()
 
         self.joint_state = None
         self.moving = False
@@ -133,11 +131,11 @@ class UR7e_StateMachine(Node):
     
         if release_time is not None:
             self._loose_timer = self.create_timer(
-                release_time / self.trajectory_planner.speed - self.loose_delay, # Scale to speed 
+                release_time - self.loose_delay, # Scale to speed 
                 self._timer_loose_callback
             )
             self._release_timer = self.create_timer(
-                release_time / self.trajectory_planner.speed, # Scale to speed 
+                release_time, # Scale to speed 
                 self._timer_release_callback
             )
     

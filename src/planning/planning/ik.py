@@ -5,8 +5,14 @@ from moveit_msgs.msg import Constraints, JointConstraint
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from builtin_interfaces.msg import Duration
+from optimal_planning_msgs.srv import OptimalTrajectoryPlan
+
+from traj_gen._trajectory_generation.save_and_load import save_trajectory, load_trajectory
+from traj_gen.trajectory_server import TrajectoryServer, _trajectory_points_to_msg, _cfg_to_joint_state
 
 import sys
+
+import numpy as np
 
 
 
@@ -37,7 +43,10 @@ class IKPlanner(Node):
         # ---- Clients ----
         self.ik_client = self.create_client(GetPositionIK, '/compute_ik')
         self.plan_client = self.create_client(GetMotionPlan, '/plan_kinematic_path')
+        self.optimal_plan_client = self.create_client(OptimalTrajectoryPlan, '/optimal_trajectory_plan')
         
+        self.speed = 1.0
+
         for srv, name in [(self.ik_client, 'compute_ik'),
                           (self.plan_client, 'plan_kinematic_path')]:
             while not srv.wait_for_service(timeout_sec=1.0):
@@ -119,6 +128,59 @@ class IKPlanner(Node):
 
         self.get_logger().info('Motion plan computed successfully.')
         return result.motion_plan_response.trajectory
+
+
+    def plan_to_target(
+            self, 
+            start_joint_state, 
+            target_pos, 
+            time_horizon,
+            num_samples = 100,
+            num_samples_iterated=10,
+            filename = None):
+        """ Return message of planned trajectory and visualize before execution"""
+        request = TrajectoryServer.Request()
+        request.start_joint_state = start_joint_state
+        request.target_pos = target_pos
+        request.time_horizon = time_horizon
+        request.num_samples = num_samples
+        request.num_samples_iterated = num_samples_iterated
+        request.speed = self.speed
+
+        future = self.plan_client.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
+
+        if future.result() is None:
+            self.get_logger().error('Planning service failed.')
+            return None
+
+        response = future.result()
+        if not response.success:
+            self.get_logger().error('Planning failed.')
+            return None
+
+        self.get_logger().info('Motion plan computed successfully.')
+
+        if filename:
+            save_trajectory(
+                filename,
+                request.start_joint_state,
+                request.target_pos,
+                response.trajectory, # TODO: convert this from msg to np.array
+                response.time_release,
+                response.time_target,
+                TrajectoryServer.timesteps,
+                time_horizon / TrajectoryServer.timesteps
+            )
+        return response.trajectory, response.time_release 
+
+    def play_loaded_trajectory(self, filename: str):
+        start_cfg, target_pos, traj, t_release, t_target, timesteps, dt = load_trajectory(filename)
+
+        # TODO: Visualize
+        # self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
+
+        return _trajectory_points_to_msg(start_cfg, np.array(traj), dt, self.speed), t_release, _cfg_to_joint_state(start_cfg)
         
 def main(args=None):
     rclpy.init(args=args)

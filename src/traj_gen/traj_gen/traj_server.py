@@ -1,11 +1,10 @@
 import rclpy
 from rclpy.node import Node
-from moveit_msgs.srv import GetPositionIK, GetMotionPlan
-from moveit_msgs.msg import PositionIKRequest, Constraints, JointConstraint, RobotTrajectory
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
+from optimal_planner_msgs.srv import OptimalTrajectoryPlan
 
 import sys
 import numpy as np
@@ -40,7 +39,8 @@ import jax.numpy as jnp
 #         node.get_logger().info('Trajectory ready to execute.')
 
 
-class TrajectoryPlanner(Node):
+class TrajectoryServer(Node):
+    timesteps = 50
     def __init__(self):
         super().__init__('trajectory_planner')
 
@@ -58,7 +58,11 @@ class TrajectoryPlanner(Node):
         self.world = World(self.robot, urdf, self.target_link_name) 
         self.speed = 1.0
 
-    def _warmup(self, timesteps):
+        self.srv = self.create_service(OptimalTrajectoryPlan, '/optimal_trajectory_plan', self.plan_callback)
+        self.get_logger().info("Gripper reset service ready: /set_gripper")
+        self._warmup()
+
+    def _warmup(self):
         self.get_logger().info(f'Warmup jax')
         solve_by_sampling(
             self.robot,
@@ -67,13 +71,25 @@ class TrajectoryPlanner(Node):
             self.target_link_name,
             self.default_cfg,
             np.array([0.3, 2, 0]),
-            timesteps,
+            self.timesteps,
             0.02,
             robot_max_reach=0.85 * 0.8, # max 
             max_vel=7, 
             num_samples=1,
             num_samples_iterated=1,
         )
+
+    def plan_callback(self, request, response):
+        response.trajectory, response.time_release, response.time_target = self._plan_to_target(
+            request.start_joint_state,
+            request.target_pos,
+            self.timesteps,
+            request.time_horizon / self.timesteps,
+            speed = request.speed,
+            num_samples = request.num_samples,
+            num_samples_iterated = request.num_samples_iterated
+        )
+        return response
 
     def _solve_to_target(
             self, 
@@ -100,60 +116,17 @@ class TrajectoryPlanner(Node):
             num_samples_iterated=num_samples_iterated,
         )
     
-    def _trajectory_points_to_msg(self, start_cfg, traj_points, dt) -> JointTrajectory:
-        """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
-        
-        # 2. Initialize the JointTrajectory (the core of the message)
-        joint_traj = JointTrajectory()
-        joint_traj.joint_names = [
-                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
-                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
-            ]
-
-
-        time_from_start = 0.0
-
-        start_point = JointTrajectoryPoint()
-        start_point.positions = start_cfg.tolist()
-        start_point.velocities = [0.0] * len(start_cfg)
-        start_point.accelerations = [0.0] * len(start_cfg)
-        start_point.time_from_start.sec = 0
-        start_point.time_from_start.nanosec = 0
-
-        velocities = self._estimate_gradients(traj_points, dt) * self.speed
-        
-        # 3. Iterate through trajectory points
-        for i, q in enumerate(traj_points):
-            point = JointTrajectoryPoint()
-            
-            # Position: The core joint configuration (Q)
-            point.positions = q.tolist() 
-            point.velocities = velocities[i].tolist()
-            #point.accelerations = [0.0] * len(q)
-            
-            # Time when this point should be reached
-            time_from_start += dt /  self.speed
-            point.time_from_start.sec = int(time_from_start)
-            point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
-            
-            joint_traj.points.append(point)
-
-        joint_traj.points[0] = start_point
-        #joint_traj.points.pop(1)
-        
-        self.get_logger().info(f'Max vel (for each joint): {np.max(velocities, axis=0)}')
-
-        return joint_traj
-        
-    def plan_to_target(
+      
+    def _plan_to_target(
             self, 
             start_joint_state, 
             target_pos, 
             timesteps, 
             time_horizon,
+            speed = 1.0,
             num_samples = 100,
             num_samples_iterated=10,
-            filename = None):
+            ):
         """ Return message of planned trajectory and visualize before execution"""
         dt = time_horizon / timesteps
         start_cfg = self._joint_state_to_cfg(start_joint_state)
@@ -180,18 +153,7 @@ class TrajectoryPlanner(Node):
                     idx = (idx + 1) % len(solutions)
                     traj, t_release, t_target = solutions[idx]
                 case "execute":
-                    if filename:
-                        save_trajectory(
-                            filename,
-                            start_cfg,
-                            target_pos,
-                            traj,
-                            t_release,
-                            t_target,
-                            timesteps,
-                            dt
-                        )
-                    return self._trajectory_points_to_msg(start_cfg, traj, dt), t_release
+                    return self._trajectory_points_to_msg(start_cfg, traj, dt, speed), t_release / speed, t_target
             status = self.world.visualize_all(
                     start_cfg, 
                     target_pos, 
@@ -202,55 +164,89 @@ class TrajectoryPlanner(Node):
                     dt
                 )
 
-    def play_loaded_trajectory(self, filename: str):
-        start_cfg, target_pos, traj, t_release, t_target, timesteps, dt = load_trajectory(filename)
+def _joint_state_to_cfg(joint_state: JointState) -> np.ndarray:
+    """ Convert JointState to configuration vector """
+    data_dict = dict(zip(joint_state.name, joint_state.position))
+    target_joint_names = [
+            'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+            'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+    ]
+    return np.array([data_dict[name] for name in target_joint_names])
 
-        # Visualize
-        self.world.visualize_all(start_cfg, target_pos, traj, t_release, t_target, timesteps, dt)
-
-        return self._trajectory_points_to_msg(start_cfg, np.array(traj), dt), t_release, self._cfg_to_joint_state(start_cfg)
-
-    def _joint_state_to_cfg(self, joint_state: JointState) -> np.ndarray:
-        """ Convert JointState to configuration vector """
-        data_dict = dict(zip(joint_state.name, joint_state.position))
-        target_joint_names = [
-                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
-                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
-        ]
-        return np.array([data_dict[name] for name in target_joint_names])
-
-    def _cfg_to_joint_state(self, cfg: np.ndarray) -> JointState:
-        """ Convert JointState to configuration vector """
-        joint_state = JointState()
-        joint_state.name = [
-                'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
-                'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
-        ]
-        joint_state.position = cfg.tolist()
-        return joint_state
+def _cfg_to_joint_state(cfg: np.ndarray) -> JointState:
+    """ Convert JointState to configuration vector """
+    joint_state = JointState()
+    joint_state.name = [
+            'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+            'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+    ]
+    joint_state.position = cfg.tolist()
+    return joint_state
    
-    def _estimate_gradients(self, data: np.ndarray, dt: float) -> np.ndarray:
-        """
-        Generic finite difference function. 
-        Works for calculating Velocity (from Pos) or Acceleration (from Vel).
-        """
-        gradients = np.zeros_like(data)
-        
-        # Central Difference (Interior)
-        gradients[1:-1] = (data[2:] - data[:-2]) / (2 * dt)
-        
-        # Forward Difference (Start)
-        gradients[0] = (-3*data[0] + 4*data[1] - data[2]) / (2 * dt)
-        
-        # Backward Difference (End)
-        gradients[-1] = (3*data[-1] - 4*data[-2] + data[-3]) / (2 * dt)
-        
-        return gradients
+def _estimate_gradients(data: np.ndarray, dt: float) -> np.ndarray:
+    """
+    Generic finite difference function. 
+    Works for calculating Velocity (from Pos) or Acceleration (from Vel).
+    """
+    gradients = np.zeros_like(data)
+    
+    # Central Difference (Interior)
+    gradients[1:-1] = (data[2:] - data[:-2]) / (2 * dt)
+    
+    # Forward Difference (Start)
+    gradients[0] = (-3*data[0] + 4*data[1] - data[2]) / (2 * dt)
+    
+    # Backward Difference (End)
+    gradients[-1] = (3*data[-1] - 4*data[-2] + data[-3]) / (2 * dt)
+    
+    return gradients
 
+def _trajectory_points_to_msg(start_cfg, traj_points, dt, speed) -> JointTrajectory:
+    """ Convert trajectory points to trajectory_msgs/JointTrajectory message. """
+    
+    # 2. Initialize the JointTrajectory (the core of the message)
+    joint_traj = JointTrajectory()
+    joint_traj.joint_names = [
+            'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+            'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint'
+        ]
+
+
+    time_from_start = 0.0
+
+    start_point = JointTrajectoryPoint()
+    start_point.positions = start_cfg.tolist()
+    start_point.velocities = [0.0] * len(start_cfg)
+    start_point.accelerations = [0.0] * len(start_cfg)
+    start_point.time_from_start.sec = 0
+    start_point.time_from_start.nanosec = 0
+
+    velocities = _estimate_gradients(traj_points, dt) * speed
+    
+    # 3. Iterate through trajectory points
+    for i, q in enumerate(traj_points):
+        point = JointTrajectoryPoint()
         
+        # Position: The core joint configuration (Q)
+        point.positions = q.tolist() 
+        point.velocities = velocities[i].tolist()
+        #point.accelerations = [0.0] * len(q)
+        
+        # Time when this point should be reached
+        time_from_start += dt / speed
+        point.time_from_start.sec = int(time_from_start)
+        point.time_from_start.nanosec = int((time_from_start - int(time_from_start)) * 1e9)
+        
+        joint_traj.points.append(point)
+
+    joint_traj.points[0] = start_point
+    #joint_traj.points.pop(1)
+
+    return joint_traj
+            
 def main(args=None):
     rclpy.init(args=args)
-    node = TrajectoryPlanner()
+    node = TrajectoryServer()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

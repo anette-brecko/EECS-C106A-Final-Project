@@ -30,7 +30,7 @@ class GripperService(Node):
         self.port = 63352
         # Create the service
 
-        self.srv = self.create_service(SetInteger, 'set_gripper', self.set_callback)
+        self.srv = self.create_service(SetInteger, '/set_gripper', self.set_callback)
         self.get_logger().info("Gripper reset service ready: /set_gripper")
         # Initialize the gripper
         self.init_gripper()

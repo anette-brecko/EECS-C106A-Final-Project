@@ -53,7 +53,7 @@ class UR7e_BallGraspAndLaunch(UR7e_StateMachine):
 
         # 5) Launch Ball
         self.job_queue.append(1.0)
-        throwing_trajectory, t_release = self.trajectory_planner.plan_to_target(self.joint_state, target_pose, 50, 1.5)
+        throwing_trajectory, t_release = self.ik_planner.plan_to_target(self.joint_state, target_pose, 1.5)
         self.job_queue.append((throwing_trajectory, t_release))
 
         # 6) Reset to launch position

@@ -31,7 +31,7 @@ setup(
     entry_points={
         'console_scripts': [
             'sim = traj_gen.sim:main',
-            'trajectory_planner = traj_gen.trajectory_planner:main',
+            'trajectory_server = traj_gen.traj_server:main',
         ],
     },
 )
