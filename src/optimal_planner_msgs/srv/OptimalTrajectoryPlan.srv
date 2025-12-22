@@ -1,0 +1,13 @@
+# Request
+sensor_msgs/JointState start_joint_state
+float32[3] target_pos
+float32 time_horizon
+uint16 num_samples
+uint16 num_samples_iterated
+float32 speed_factor 1.0
+---
+# Response
+bool success
+trajectory_msgs/JointTrajectory trajectory
+float64 time_release
+float64 time_target
